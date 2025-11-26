@@ -1,7 +1,12 @@
 C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\controller\ProductController.java
+C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\exception\ErrorResponse.java
 C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\entity\Product.java
+C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\exception\GlobalExceptionHandler.java
+C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\mapper\ProductMapper.java
 C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\repository\ProductRepository.java
 C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\service\ProductService.java
 C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\service\ProductServiceImpl.java
+C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\dto\ProductDto.java
 C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\Application.java
 C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\config\SecurityConfig.java
+C:\Users\liamf\Proyectos\TaskFlow-app\backend\src\main\java\com\proyecto\exception\ProductNotFoundException.java

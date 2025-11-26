@@ -1,45 +1,56 @@
 package com.proyecto.service;
 
+import com.proyecto.dto.ProductDto;
 import com.proyecto.entity.Product;
+import com.proyecto.exception.ProductNotFoundException;
+import com.proyecto.mapper.ProductMapper;
 import com.proyecto.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository repo;
+    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
 
     @Override
-    public List<Product> getAll() {
-        // Solo retorna items visibles y buscables
-        return repo.findByHiddenFalseAndSearchableTrue();
+    public Page<ProductDto> getAll(Pageable pageable) {
+        Page<Product> products = productRepository.findByHiddenFalseAndSearchableTrue(pageable);
+        return products.map(productMapper::toDto);
     }
 
     @Override
-    public Product getById(Long id) {
-        return repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+    public ProductDto getById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Producto no encontrado con ID: " + id));
+        return productMapper.toDto(product);
     }
 
     @Override
-    public List<Product> search(String text) {
-        // Solo busca en items visibles y buscables
-        return repo.findByDescriptionContainingIgnoreCaseAndHiddenFalseAndSearchableTrue(text);
+    public Page<ProductDto> search(String text, Pageable pageable) {
+        Page<Product> products = productRepository
+                .findByDescriptionContainingIgnoreCaseAndHiddenFalseAndSearchableTrue(text, pageable);
+        return products.map(productMapper::toDto);
     }
 
     @Override
-    public Product findByCode(String code) {
-        return repo.findByCodeAndHiddenFalseAndSearchableTrue(code)
-                .orElseThrow(() -> new RuntimeException("Producto con código " + code + " no encontrado"));
+    public ProductDto findByCode(String code) {
+        Product product = productRepository.findByCodeAndHiddenFalseAndSearchableTrue(code)
+                .orElseThrow(() -> new ProductNotFoundException("Producto no encontrado con código: " + code));
+        return productMapper.toDto(product);
     }
 
     @Override
-    public Product findByBarcode(String barcode) {
-        return repo.findByBarcodeAndHiddenFalseAndSearchableTrue(barcode)
-                .orElseThrow(() -> new RuntimeException("Producto con código de barras " + barcode + " no encontrado"));
+    public ProductDto findByBarcode(String barcode) {
+        Product product = productRepository.findByBarcodeAndHiddenFalseAndSearchableTrue(barcode)
+                .orElseThrow(
+                        () -> new ProductNotFoundException("Producto no encontrado con código de barras: " + barcode));
+        return productMapper.toDto(product);
     }
 }

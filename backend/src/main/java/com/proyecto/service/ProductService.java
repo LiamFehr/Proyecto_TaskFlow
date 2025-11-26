@@ -1,19 +1,18 @@
 package com.proyecto.service;
 
-import org.springframework.stereotype.Service;
-import com.proyecto.entity.Product;
-import java.util.List;
+import com.proyecto.dto.ProductDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-@Service
 public interface ProductService {
 
-    List<Product> getAll();
+    Page<ProductDto> getAll(Pageable pageable);
 
-    Product getById(Long id);
+    ProductDto getById(Long id);
 
-    List<Product> search(String text);
+    Page<ProductDto> search(String text, Pageable pageable);
 
-    Product findByCode(String code);
+    ProductDto findByCode(String code);
 
-    Product findByBarcode(String barcode);
+    ProductDto findByBarcode(String barcode);
 }

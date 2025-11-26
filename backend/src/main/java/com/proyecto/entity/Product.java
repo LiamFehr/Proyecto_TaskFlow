@@ -1,41 +1,43 @@
 package com.proyecto.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "items_active", schema = "public")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "legacy_id")
-    private Long legacyId;
-
-    // codigo interno
-    @Column(name = "code")
+    @Column(name = "code", unique = true)
     private String code;
 
-    // codigo de barras
     @Column(name = "barcode")
     private String barcode;
 
+    @NotBlank(message = "La descripción es obligatoria")
     @Column(name = "description", nullable = false)
     private String description;
 
+    @NotNull(message = "El precio es obligatorio")
+    @PositiveOrZero(message = "El precio debe ser mayor o igual a 0")
     private BigDecimal price;
 
     private Boolean hidden;
 
     private Boolean searchable;
-
 }

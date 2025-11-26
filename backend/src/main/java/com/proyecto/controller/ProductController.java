@@ -1,44 +1,47 @@
 package com.proyecto.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.proyecto.entity.Product;
+import com.proyecto.dto.ProductDto;
 import com.proyecto.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
-@CrossOrigin("*")
+@Validated
 public class ProductController {
 
-    private final ProductService service;
+    private final ProductService productService;
 
     @GetMapping
-    public List<Product> getAll() {
-        return service.getAll();
+    public ResponseEntity<Page<ProductDto>> getAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(productService.getAll(pageable));
     }
 
     @GetMapping("/{id}")
-    public Product getById(@PathVariable Long id) {
-        return service.getById(id);
+    public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getById(id));
     }
 
     @GetMapping("/search")
-    public List<Product> search(@RequestParam String q) {
-        return service.search(q);
+    public ResponseEntity<Page<ProductDto>> search(
+            @RequestParam("q") String text,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(productService.search(text, pageable));
     }
 
     @GetMapping("/code/{code}")
-    public Product findByCode(@PathVariable String code) {
-        return service.findByCode(code);
+    public ResponseEntity<ProductDto> findByCode(@PathVariable String code) {
+        return ResponseEntity.ok(productService.findByCode(code));
     }
 
     @GetMapping("/barcode/{barcode}")
-    public Product findByBarcode(@PathVariable String barcode) {
-        return service.findByBarcode(barcode);
+    public ResponseEntity<ProductDto> findByBarcode(@PathVariable String barcode) {
+        return ResponseEntity.ok(productService.findByBarcode(barcode));
     }
 }

@@ -1,7 +1,15 @@
+com\proyecto\dto\ProductDto$ProductDtoBuilder.class
+com\proyecto\dto\ProductDto.class
 com\proyecto\entity\Product.class
 com\proyecto\service\ProductService.class
+com\proyecto\mapper\ProductMapper.class
 com\proyecto\Application.class
 com\proyecto\repository\ProductRepository.class
-com\proyecto\controller\ProductController.class
 com\proyecto\config\SecurityConfig.class
 com\proyecto\service\ProductServiceImpl.class
+com\proyecto\exception\ErrorResponse$ErrorResponseBuilder.class
+com\proyecto\mapper\ProductMapperImpl.class
+com\proyecto\exception\GlobalExceptionHandler.class
+com\proyecto\exception\ProductNotFoundException.class
+com\proyecto\controller\ProductController.class
+com\proyecto\exception\ErrorResponse.class
