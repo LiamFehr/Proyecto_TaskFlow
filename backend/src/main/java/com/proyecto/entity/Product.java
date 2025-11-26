@@ -7,15 +7,19 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
+import java.math.BigDecimal;
 
 @Entity
-@Table(name = "item")
+@Table(name = "items_active", schema = "public")
 @Data
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "legacy_id")
+    private Long legacyId;
 
     // codigo interno
     @Column(name = "code")
@@ -28,8 +32,10 @@ public class Product {
     @Column(name = "description", nullable = false)
     private String description;
 
-    private Double price;
+    private BigDecimal price;
 
-    private Double stock;
+    private Boolean hidden;
+
+    private Boolean searchable;
 
 }

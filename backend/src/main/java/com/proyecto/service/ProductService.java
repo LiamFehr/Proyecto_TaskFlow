@@ -12,4 +12,8 @@ public interface ProductService {
     Product getById(Long id);
 
     List<Product> search(String text);
+
+    Product findByCode(String code);
+
+    Product findByBarcode(String barcode);
 }

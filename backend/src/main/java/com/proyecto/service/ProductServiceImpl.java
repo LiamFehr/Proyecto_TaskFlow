@@ -15,7 +15,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getAll() {
-        return repo.findAll();
+        // Solo retorna items visibles y buscables
+        return repo.findByHiddenFalseAndSearchableTrue();
     }
 
     @Override
@@ -26,6 +27,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> search(String text) {
-        return repo.findByDescriptionContainingIgnoreCase(text);
+        // Solo busca en items visibles y buscables
+        return repo.findByDescriptionContainingIgnoreCaseAndHiddenFalseAndSearchableTrue(text);
+    }
+
+    @Override
+    public Product findByCode(String code) {
+        return repo.findByCodeAndHiddenFalseAndSearchableTrue(code)
+                .orElseThrow(() -> new RuntimeException("Producto con código " + code + " no encontrado"));
+    }
+
+    @Override
+    public Product findByBarcode(String barcode) {
+        return repo.findByBarcodeAndHiddenFalseAndSearchableTrue(barcode)
+                .orElseThrow(() -> new RuntimeException("Producto con código de barras " + barcode + " no encontrado"));
     }
 }

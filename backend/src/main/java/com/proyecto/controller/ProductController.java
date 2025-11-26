@@ -31,4 +31,14 @@ public class ProductController {
     public List<Product> search(@RequestParam String q) {
         return service.search(q);
     }
+
+    @GetMapping("/code/{code}")
+    public Product findByCode(@PathVariable String code) {
+        return service.findByCode(code);
+    }
+
+    @GetMapping("/barcode/{barcode}")
+    public Product findByBarcode(@PathVariable String barcode) {
+        return service.findByBarcode(barcode);
+    }
 }

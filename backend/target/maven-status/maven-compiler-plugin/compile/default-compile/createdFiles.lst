@@ -1,0 +1,7 @@
+com\proyecto\entity\Product.class
+com\proyecto\service\ProductService.class
+com\proyecto\Application.class
+com\proyecto\repository\ProductRepository.class
+com\proyecto\controller\ProductController.class
+com\proyecto\config\SecurityConfig.class
+com\proyecto\service\ProductServiceImpl.class
