@@ -1,8 +1,8 @@
 export function calculatePayments(total: number) {
-    const isWeekend = () => {
-        const day = new Date().getDay();
-        return day === 5 || day === 6; // Friday = 5, Saturday = 6
-    };
+    // const isWeekend = () => {
+    //     const day = new Date().getDay();
+    //     return day === 5 || day === 6; // Friday = 5, Saturday = 6
+    // };
 
     return {
         efectivo: total * 0.90, // 10% discount

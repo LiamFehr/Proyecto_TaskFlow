@@ -21,3 +21,15 @@ export interface PageResponse<T> {
         pageSize: number;
     };
 }
+
+export interface ProductoPedido {
+    codigo: string;
+    descripcion: string;
+    cantidad: number;
+}
+
+export interface Pedido {
+    cliente: string;
+    fecha: string;
+    productos: ProductoPedido[];
+}

@@ -1,5 +1,5 @@
 import { calculatePayments } from "../utils/paymentCalculator";
-import { Banknote, CreditCard, Landmark, Receipt } from "lucide-react";
+import { Banknote, CreditCard, Landmark } from "lucide-react";
 
 interface PaymentSummaryProps {
     total: number;

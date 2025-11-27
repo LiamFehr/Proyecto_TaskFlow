@@ -32,18 +32,17 @@ export default function SearchPage() {
             {/* Header */}
             <header className="bg-white shadow-md sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-3">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
-                        {/* Logo in Header */}
+                    <div className="flex justify-between items-center">
                         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                             <img src="/vhp-logo.jpg" alt="VHP Logo" className="h-20 w-auto object-contain" />
                         </Link>
 
                         <Link
                             to="/cart"
-                            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-200 font-semibold"
+                            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 font-semibold"
+                            title="Ver Carrito"
                         >
-                            <ShoppingCart size={20} />
-                            Carrito
+                            <ShoppingCart size={24} />
                             {cartCount > 0 && (
                                 <span className="bg-white text-blue-600 px-2 py-1 rounded-full text-sm font-bold">
                                     {cartCount}
@@ -53,6 +52,7 @@ export default function SearchPage() {
                     </div>
                 </div>
             </header>
+
             {/* Main Content */}
             <main className="container mx-auto px-4 py-8">
                 <div className="w-full">
