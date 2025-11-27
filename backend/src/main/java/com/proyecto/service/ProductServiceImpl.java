@@ -34,8 +34,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductDto> search(String text, Pageable pageable) {
-        Page<Product> products = productRepository
-                .findByDescriptionContainingIgnoreCaseAndHiddenFalseAndSearchableTrue(text, pageable);
+        // Use the new explicit query method for strict code/barcode search
+        Page<Product> products = productRepository.searchByCodeOrBarcode(text, pageable);
         return products.map(productMapper::toDto);
     }
 

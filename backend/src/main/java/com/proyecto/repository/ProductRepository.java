@@ -13,7 +13,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findByHiddenFalseAndSearchableTrue(Pageable pageable);
 
-    Page<Product> findByDescriptionContainingIgnoreCaseAndHiddenFalseAndSearchableTrue(String text, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Product p WHERE (LOWER(p.code) LIKE LOWER(CONCAT(:text, '%')) OR LOWER(p.barcode) LIKE LOWER(CONCAT(:text, '%'))) AND p.hidden = false AND p.searchable = true")
+    Page<Product> searchByCodeOrBarcode(@org.springframework.data.repository.query.Param("text") String text,
+            Pageable pageable);
 
     Optional<Product> findByCodeAndHiddenFalseAndSearchableTrue(String code);
 
