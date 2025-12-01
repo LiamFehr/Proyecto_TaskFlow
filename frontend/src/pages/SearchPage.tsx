@@ -9,7 +9,7 @@ import { ShoppingCart, Search } from "lucide-react";
 export default function SearchPage() {
     const [text, setText] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
-    const [page] = useState(0);
+    const [page, setPage] = useState(0);
 
     const { data: productsData, isLoading } = useProductSearch(searchQuery, page);
 
@@ -19,6 +19,7 @@ export default function SearchPage() {
 
     const handleSearch = () => {
         setSearchQuery(text);
+        setPage(0); // Reset page on new search
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -87,7 +88,7 @@ export default function SearchPage() {
                     {/* Products Section - Only show when searching */}
                     {searchQuery && (
                         <div className="bg-white rounded-2xl shadow-lg p-6">
-                            <h2 className="text-xl font-bold text-gray-800 mb-4">
+                            <h2 key={searchQuery} className="text-xl font-bold text-gray-800 mb-4">
                                 Resultados para "{searchQuery}"
                             </h2>
 
