@@ -36,75 +36,93 @@ export default function CartList({ items, onRemove, onUpdateQuantity }: CartList
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className="flex items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-all duration-200"
+                    className="bg-white border-2 border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200"
                 >
-                    <div className="flex items-center gap-3 flex-1">
-                        <Package className="text-blue-600" size={24} />
-                        <div className="flex-1">
-                            <h3 className="font-semibold text-gray-800">{item.description}</h3>
-                            <p className="text-sm text-gray-500 font-mono">{item.code}</p>
-                        </div>
-                    </div>
+                    {/* Container: Stack on mobile, Row on Desktop */}
+                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
 
-                    <div className="flex items-center gap-4">
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-1">Cantidad</p>
-                            <div className="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
-                                <button
-                                    onClick={() => onUpdateQuantity(item.id, Math.max(1, item.qty - 1))}
-                                    className="w-8 h-8 flex items-center justify-center bg-white text-gray-600 rounded-md shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
-                                    disabled={item.qty <= 1}
-                                >
-                                    -
-                                </button>
-
-                                {editingId === item.id ? (
-                                    <input
-                                        type="number"
-                                        value={editValue}
-                                        onChange={(e) => setEditValue(e.target.value)}
-                                        onBlur={() => handleQuantityBlur(item.id)}
-                                        onKeyPress={(e) => handleQuantityKeyPress(e, item.id)}
-                                        className="w-12 text-center bg-transparent font-bold text-gray-800 outline-none"
-                                        autoFocus
-                                    />
-                                ) : (
-                                    <span
-                                        onClick={() => handleQuantityClick(item)}
-                                        className="w-12 text-center font-bold text-gray-800 cursor-pointer hover:text-blue-600"
-                                    >
-                                        {item.qty}
-                                    </span>
-                                )}
-
-                                <button
-                                    onClick={() => onUpdateQuantity(item.id, item.qty + 1)}
-                                    className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 transition-colors"
-                                >
-                                    <Plus size={16} />
-                                </button>
+                        {/* 1. Product Info (Always top/left) */}
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className="bg-blue-50 p-2 rounded-lg shrink-0">
+                                <Package className="text-blue-600" size={20} />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="font-bold text-gray-800 text-sm sm:text-base leading-tight">
+                                    {item.description}
+                                </h3>
+                                <p className="text-xs text-slate-400 font-mono mt-1">{item.code}</p>
                             </div>
                         </div>
 
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500">Precio Unit.</p>
-                            <span className="font-semibold text-gray-700">${item.price.toFixed(2)}</span>
-                        </div>
+                        {/* 2. Controls & Pricing (Bottom on mobile, Right on Desktop) */}
+                        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-6 border-t sm:border-0 border-slate-100 pt-3 sm:pt-0 w-full sm:w-auto">
 
-                        <div className="text-center">
-                            <p className="text-xs text-gray-500">Subtotal</p>
-                            <span className="font-bold text-green-600 text-xl">
-                                ${(item.price * item.qty).toFixed(2)}
-                            </span>
-                        </div>
+                            {/* Quantity */}
+                            <div className="flex flex-col items-center">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 sm:hidden">
+                                    Cant.
+                                </span>
+                                <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-200 shadow-sm">
+                                    <button
+                                        onClick={() => onUpdateQuantity(item.id, Math.max(1, item.qty - 1))}
+                                        className="w-7 h-7 flex items-center justify-center bg-white text-slate-600 rounded shadow-sm hover:bg-slate-100 disabled:opacity-50"
+                                        disabled={item.qty <= 1}
+                                    >
+                                        -
+                                    </button>
 
-                        <button
-                            onClick={() => onRemove(item.id)}
-                            className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-all duration-200 hover:scale-110"
-                            title="Eliminar"
-                        >
-                            <X size={20} />
-                        </button>
+                                    {editingId === item.id ? (
+                                        <input
+                                            type="number"
+                                            value={editValue}
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                            onBlur={() => handleQuantityBlur(item.id)}
+                                            onKeyPress={(e) => handleQuantityKeyPress(e, item.id)}
+                                            className="w-8 text-center bg-transparent font-bold text-sm text-slate-800 outline-none"
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <span
+                                            onClick={() => handleQuantityClick(item)}
+                                            className="w-8 text-center font-bold text-sm text-slate-800 cursor-pointer"
+                                        >
+                                            {item.qty}
+                                        </span>
+                                    )}
+
+                                    <button
+                                        onClick={() => onUpdateQuantity(item.id, item.qty + 1)}
+                                        className="w-7 h-7 flex items-center justify-center bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 active:scale-95"
+                                    >
+                                        <Plus size={14} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Subtotal */}
+                            <div className="flex flex-col items-end sm:items-center min-w-[30%] sm:min-w-0">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 sm:hidden">
+                                    Total
+                                </span>
+                                <div className="flex flex-col items-end sm:items-center">
+                                    <span className="font-black text-emerald-600 text-base sm:text-lg">
+                                        ${(item.price * item.qty).toLocaleString('es-AR')}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 hidden sm:block">
+                                        Unit: ${item.price.toLocaleString('es-AR')}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Delete */}
+                            <button
+                                onClick={() => onRemove(item.id)}
+                                className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors ml-1 sm:ml-0"
+                                title="Eliminar"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             ))}

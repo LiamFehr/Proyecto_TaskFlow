@@ -1,4 +1,4 @@
-package com.proyecto.entity;
+package com.proyecto.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 })
 @Getter
 @Setter
+@lombok.Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {

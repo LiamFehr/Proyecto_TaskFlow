@@ -1,7 +1,7 @@
 package com.proyecto.service;
 
 import com.proyecto.dto.ProductDto;
-import com.proyecto.entity.Product;
+import com.proyecto.model.Product;
 import com.proyecto.exception.ProductNotFoundException;
 import com.proyecto.mapper.ProductMapper;
 import com.proyecto.repository.ProductRepository;

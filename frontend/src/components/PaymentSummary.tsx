@@ -45,7 +45,8 @@ export default function PaymentSummary({ total }: PaymentSummaryProps) {
         <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-6">Medios de Pago</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Responsive Grid: 1 col on mobile, 2 on medium+ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {methods.map((method, idx) => {
                     const Icon = method.icon;
                     const colorClasses = {
@@ -61,23 +62,29 @@ export default function PaymentSummary({ total }: PaymentSummaryProps) {
                     return (
                         <div
                             key={idx}
-                            className={`bg-gradient-to-br ${colorClasses} text-white rounded-xl p-4 hover:shadow-xl transition-all duration-200 hover:scale-105`}
+                            className={`bg-gradient-to-br ${colorClasses} text-white rounded-xl p-3 sm:p-4 hover:shadow-xl transition-all duration-200`}
                         >
                             <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                    <Icon size={20} />
-                                    <span className="font-semibold">{method.name}</span>
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <Icon size={20} className="shrink-0" />
+                                    <span className="font-semibold truncate text-sm sm:text-base">
+                                        {method.name.replace(' Cuotas', '')}
+                                        <span className="hidden sm:inline"> Cuotas</span>
+                                        <span className="inline sm:hidden"> C.</span>
+                                    </span>
                                 </div>
                                 {method.discount && (
-                                    <span className="bg-white/20 px-2 py-1 rounded-full text-xs font-bold">
+                                    <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold shrink-0">
                                         {method.discount}
                                     </span>
                                 )}
                             </div>
-                            <div className="text-2xl font-bold">
-                                ${method.amount.toFixed(2)}
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-xl sm:text-2xl font-bold">
+                                    ${method.amount.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
                                 {method.perMonth && (
-                                    <span className="text-sm font-normal ml-1 opacity-90">/mes</span>
+                                    <span className="text-xs sm:text-sm font-normal opacity-90">/mes</span>
                                 )}
                             </div>
                         </div>

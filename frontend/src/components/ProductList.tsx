@@ -1,5 +1,9 @@
 import { Product } from "../types";
-import { Plus, Package } from "lucide-react";
+import { Plus, LogIn } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import PaymentOptionsDisplay from "./PaymentOptionsDisplay";
+import { useAuthStore } from "../store/authStore";
+import { cn } from "../lib/utils";
 
 interface ProductListProps {
     products: Product[];
@@ -7,44 +11,79 @@ interface ProductListProps {
 }
 
 export default function ProductList({ products, onSelect }: ProductListProps) {
+    const { isAuthenticated } = useAuthStore();
+    const navigate = useNavigate();
+
+    const handleAction = (product: Product, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isAuthenticated) {
+            navigate("/login");
+            return;
+        }
+        onSelect(product);
+    };
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="max-w-5xl mx-auto space-y-4 md:space-y-8">
             {products.map((p) => (
                 <div
                     key={p.id}
-                    className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-xl transition-all duration-200 cursor-pointer group"
-                    onClick={() => onSelect(p)}
+                    className="bg-white border-2 border-slate-100 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-8 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 group"
                 >
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Package className="text-blue-600" size={20} />
-                                <span className="font-mono text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                                    {p.code}
-                                </span>
+                    <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-12">
+                        {/* LEFT COLUMN: Product Info & Main Action */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                            <div>
+                                {/* Badge */}
+                                <div className="inline-flex items-center justify-center px-3 py-1 bg-blue-50 border border-blue-100 rounded-lg mb-4 md:mb-6">
+                                    <span className="font-mono text-xs md:text-sm font-bold text-blue-600">
+                                        {p.code}
+                                    </span>
+                                </div>
+
+                                {/* Description */}
+                                <h3 className="text-lg md:text-3xl font-bold text-slate-800 leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+                                    {p.description}
+                                </h3>
+                                {p.barcode && (
+                                    <p className="text-xs md:text-sm text-slate-400 font-mono truncate">{p.barcode}</p>
+                                )}
                             </div>
-                            <h3 className="font-semibold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">
-                                {p.description}
-                            </h3>
-                            {p.barcode && (
-                                <p className="text-xs text-gray-500 font-mono">
-                                    Código de barras: {p.barcode}
-                                </p>
-                            )}
+
+                            {/* Price & Button */}
+                            <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-slate-100 flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Precio Lista</p>
+                                    <p className="text-3xl md:text-5xl font-black text-emerald-600 tracking-tight">
+                                        ${p.price.toLocaleString('es-AR')}
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={(e) => handleAction(p, e)}
+                                    className={cn(
+                                        "w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-95 shadow-lg",
+                                        isAuthenticated
+                                            ? "bg-slate-900 text-white hover:bg-blue-600 hover:scale-105"
+                                            : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                                    )}
+                                    title={isAuthenticated ? "Agregar al carrito" : "Iniciar sesión para comprar"}
+                                >
+                                    <Plus strokeWidth={3} size={isAuthenticated ? 24 : 20} className="md:w-7 md:h-7" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                            <span className="text-2xl font-bold text-green-600">
-                                ${p.price.toFixed(2)}
-                            </span>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSelect(p);
-                                }}
-                                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-lg hover:shadow-lg transition-all duration-200 group-hover:scale-110"
-                            >
-                                <Plus size={20} />
-                            </button>
+
+                        {/* RIGHT COLUMN: Payment Options (Always Visible) */}
+                        <div className="lg:w-[480px] shrink-0 bg-slate-50/30 rounded-xl md:rounded-2xl p-1 md:p-3 border border-slate-100/50 mt-2 lg:mt-0">
+                            {/* Desktop: standard, Mobile: standard logic (not dense) but 2 columns */}
+                            <div className="hidden md:block">
+                                <PaymentOptionsDisplay price={p.price} showTitle={false} columns={2} />
+                            </div>
+                            <div className="block md:hidden">
+                                {/* Using columns=2 and dense=false to make them larger but fit 2 per row side-by-edges */}
+                                <PaymentOptionsDisplay price={p.price} showTitle={false} columns={2} dense={false} mobileConfig={true} />
+                            </div>
                         </div>
                     </div>
                 </div>

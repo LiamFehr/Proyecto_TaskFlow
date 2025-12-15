@@ -1,7 +1,7 @@
 package com.proyecto.mapper;
 
 import com.proyecto.dto.ProductDto;
-import com.proyecto.entity.Product;
+import com.proyecto.model.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 

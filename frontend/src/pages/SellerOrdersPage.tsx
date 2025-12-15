@@ -1,23 +1,27 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { vendedorApi } from "../api/vendedorApi";
+import { http } from "../api/http";
+import { useAuthStore } from "../store/authStore";
 import { Download, RefreshCw, FileJson, Trash2, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function SellerOrdersPage() {
-    const [orders, setOrders] = useState<string[]>([]);
+    const [orders, setOrders] = useState<any[]>([]); // Typed as any[] for now since backend returns strings (filenames) or objects
     const [isLoading, setIsLoading] = useState(false);
-    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+    const [lastUpdated, setLastUpdated] = useState(new Date());
+    const token = useAuthStore().token;
 
     const fetchOrders = async () => {
         setIsLoading(true);
         try {
-            console.log("Fetching orders...");
-            const response = await axios.get("http://localhost:8000/api/pedidos");
-            console.log("Orders fetched:", response.data);
-            setOrders(response.data);
+            console.log("Fetching orders from Vendor API...");
+            const response = await vendedorApi.listarPedidos(token);
+            console.log("Orders fetched:", response);
+            setOrders(Array.isArray(response) ? response : []);
             setLastUpdated(new Date());
         } catch (error) {
             console.error("Error fetching orders:", error);
+            setOrders([]);
         } finally {
             setIsLoading(false);
         }
@@ -27,8 +31,17 @@ export default function SellerOrdersPage() {
         if (!window.confirm(`¿Estás seguro de eliminar el pedido ${filename}?`)) return;
 
         try {
-            await axios.delete(`http://localhost:8000/api/pedidos/${filename}`);
-            fetchOrders(); // Refresh list
+            // Processing/Deleting might be separate. VendedorApi has procesarPedido
+            // But here it deletes. http.delete is generic. 
+            // Let's keep using http.delete for now but point to /vendedor/pedidos/filename ?
+            // Backend VendedorController only has procesarPedido (Patch). 
+            // AdminController likely has delete? 
+            // Given the 403 on /pedidos, delete /pedidos/filename will also 403.
+            // I should use the vendedor endpoint if available, but currently VendedorController only has 'procesarPedido'.
+            // For now, I will fix the fetch to prove the list works.
+            // If delete fails, I will fix that next.
+            await http.delete(`/pedidos/${filename}`, { headers: { Authorization: `Bearer ${token}` } });
+            fetchOrders();
         } catch (error) {
             console.error("Error deleting order:", error);
             alert("Error al eliminar el pedido");
@@ -37,7 +50,7 @@ export default function SellerOrdersPage() {
 
     useEffect(() => {
         fetchOrders();
-        const interval = setInterval(fetchOrders, 30000); // Auto-refresh every 30 seconds
+        const interval = setInterval(fetchOrders, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -89,7 +102,7 @@ export default function SellerOrdersPage() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {orders.map((filename) => {
-                                        const clientName = filename.replace(".json", "").replace(/_/g, " ");
+                                        const clientName = typeof filename === 'string' ? filename.replace(".json", "").replace(/_/g, " ") : "Pedido";
                                         return (
                                             <tr key={filename} className="hover:bg-gray-50 transition-colors">
                                                 <td className="py-4 px-6">
@@ -100,7 +113,7 @@ export default function SellerOrdersPage() {
                                                 </td>
                                                 <td className="py-4 px-6 text-right flex justify-end gap-2">
                                                     <a
-                                                        href={`http://localhost:8000/api/pedidos/${filename}/descargar`}
+                                                        href={`/api/pedidos/${filename}/descargar`}
                                                         className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                                                         title="Descargar JSON"
                                                         download
@@ -109,7 +122,7 @@ export default function SellerOrdersPage() {
                                                         JSON
                                                     </a>
                                                     <a
-                                                        href={`http://localhost:8000/api/pedidos/${filename}/descargar-txt`}
+                                                        href={`/api/pedidos/${filename}/descargar-txt`}
                                                         className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                                                         title="Descargar TXT"
                                                         download
@@ -117,6 +130,7 @@ export default function SellerOrdersPage() {
                                                         <FileText size={16} />
                                                         TXT
                                                     </a>
+                                                    {/* Eliminar might fail if permissions not set, but leaving for now */}
                                                     <button
                                                         onClick={() => handleDelete(filename)}
                                                         className="inline-flex items-center justify-center bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"

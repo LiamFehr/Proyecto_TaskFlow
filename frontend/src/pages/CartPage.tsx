@@ -4,7 +4,7 @@ import CartList from "../components/CartList";
 import PaymentSummary from "../components/PaymentSummary";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ShoppingBag, CheckCircle, X, Trash2 } from "lucide-react";
-import axios from "axios";
+import { http } from "../api/http";
 import { Pedido } from "../types";
 
 export default function CartPage() {
@@ -39,7 +39,7 @@ export default function CartPage() {
                 }))
             };
 
-            await axios.post("http://localhost:8000/api/pedidos", pedido);
+            await http.post("/pedidos", pedido);
 
             setSuccessMessage("Tu pedido fue enviado con éxito");
             clear();
