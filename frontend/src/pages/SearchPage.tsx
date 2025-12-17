@@ -34,7 +34,7 @@ export default function SearchPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             {/* Main Content */}
-            <main className="container mx-auto px-4 py-8 flex flex-col items-center">
+            <main className="container mx-auto px-2 md:px-4 py-8 flex flex-col items-center">
                 <div className="w-full max-w-4xl mt-32 md:mt-40">
 
                     {/* Search Section */}
@@ -66,7 +66,7 @@ export default function SearchPage() {
 
                     {/* Products Section */}
                     {searchQuery && (
-                        <div className="bg-white rounded-2xl shadow-lg p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="bg-transparent shadow-none p-0 md:bg-white md:rounded-2xl md:shadow-lg md:p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <h2 className="text-xl font-bold text-gray-800 mb-4">
                                 Resultados para "{product ? product.code : searchQuery}"
                             </h2>

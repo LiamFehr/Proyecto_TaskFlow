@@ -1,4 +1,4 @@
-export const apiBase = "http://localhost:8000"; // ajustar según VPS
+export const apiBase = "/api"; // Relative path for Nginx proxy
 
 export async function request(method, url, body = null, token = null) {
     const headers = {
@@ -22,7 +22,12 @@ export async function request(method, url, body = null, token = null) {
     }
 
     if (res.status === 204) return null;
-    return await res.json();
+
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+        return await res.json();
+    }
+    return await res.text();
 }
 
 export const http = {

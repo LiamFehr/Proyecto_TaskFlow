@@ -18,69 +18,91 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
+
 import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtUtil jwtUtil;
-    private final UsuarioRepository usuarioRepository;
+        private final JwtUtil jwtUtil;
+        private final UsuarioRepository usuarioRepository;
+        private final com.proyecto.security.OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, usuarioRepository);
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, usuarioRepository);
 
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // públicos
-                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/registro",
-                                "/auth/recuperar", "/auth/recuperar/confirmar",
-                                "/auth/2fa/enviar", "/auth/2fa/validar")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers("/api/ocr/**").permitAll() // TEMPORAL PARA DEBUG
+                http
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                // Public Endpoints
+                                                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                                                // Optional: permit other auth endpoints
+                                                .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                                                .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
 
-                        // admin
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                                                // Public Resources
+                                                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
+                                                .requestMatchers("/api/ocr/**").permitAll()
 
-                        // vendedor
-                        .requestMatchers("/vendedor/**").hasAnyRole("VENDEDOR", "ADMIN")
+                                                // Role-based Access
+                                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/api/vendedor/**").hasAnyRole("VENDEDOR", "ADMIN")
+                                                .requestMatchers("/api/pedidos/**").hasRole("CLIENTE")
 
-                        // cliente autenticado (ej: pedidos)
-                        .requestMatchers("/api/pedidos/**").hasRole("CLIENTE")
+                                                .requestMatchers("/api/pedidos/**").hasRole("CLIENTE")
+                                                .anyRequest().authenticated())
+                                .exceptionHandling(e -> e.authenticationEntryPoint(
+                                                new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                                                                org.springframework.http.HttpStatus.UNAUTHORIZED)))
+                                .oauth2Login(oauth2 -> oauth2
+                                                .authorizationEndpoint(authorization -> authorization
+                                                                .baseUri("/api/oauth2/authorization"))
+                                                .redirectionEndpoint(redirection -> redirection
+                                                                .baseUri("/api/login/oauth2/code/*"))
+                                                .successHandler(oAuth2SuccessHandler))
+                                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                return http.build();
+        }
 
-        return http.build();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+                return cfg.getAuthenticationManager();
+        }
 
-    // opcional si en algún momento necesitás AuthenticationManager
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
-        return cfg.getAuthenticationManager();
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
+                configuration.setAllowedOrigins(List.of(
+                                "http://localhost:5173",
+                                "https://victorpetruccio.online",
+                                "https://www.victorpetruccio.online"));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                configuration.setAllowedMethods(List.of(
+                                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+                configuration.setAllowedHeaders(List.of(
+                                "Authorization",
+                                "Content-Type",
+                                "Accept"));
+
+                configuration.setAllowCredentials(true);
+                configuration.setMaxAge(3600L);
+
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+
+                return source;
+        }
 }

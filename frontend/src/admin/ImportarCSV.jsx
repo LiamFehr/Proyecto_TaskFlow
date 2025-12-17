@@ -94,19 +94,55 @@ export default function ImportarCSV() {
 
     const parse8ColumnCSV = (text) => {
         // Format: id,legacy_id,code,barcode,description,price,hidden,searchable
+        // User sample: 145,1128,1128,1128,"PORTA CAFE,AZUCAR...",960,false,true
+
         const lines = text.split(/\r?\n/);
         const data = [];
         lines.forEach((line, index) => {
             if (!line.trim()) return;
-            if (index === 0 && (line.includes("legacy_id") || line.includes("description"))) return;
 
-            let parts = line.split(",");
-            if (parts.length < 8) parts = line.split(";");
+            // Removing BOM if present on first line
+            let cleanLine = line;
+            if (index === 0) {
+                cleanLine = line.replace(/^\uFEFF/, '');
+                if (cleanLine.toLowerCase().includes("legacy_id")) return;
+            }
+
+            // Regex split respecting quotes
+            const parts = cleanLine.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+            // Fallback for semicolon
+            if (parts.length < 3 && cleanLine.includes(";")) {
+                return parse8ColumnCSV(text.replace(/;/g, ',')); // Retry/Simpler logic or just handle split
+            }
 
             if (parts.length >= 6) {
+                // Mapping based on user file: 0=id, 1=legacy, 2=code, 3=barcode, 4=desc, 5=price
                 const code = parts[2]?.trim();
-                const description = parts[4]?.trim();
-                const price = parseFloat(parts[5]?.trim());
+                let description = parts[4]?.trim();
+                let priceStr = parts[5]?.trim();
+
+                // Handle 3 column fallback (if user uploads a different simple format)
+                // But considering the error was strict validation, we focus on the 8-col one.
+                if (parts.length < 8 && parts.length === 3) {
+                    // code, desc, price ?
+                }
+
+                // Cleanup Description (remove quotes)
+                if (description?.startsWith('"') && description?.endsWith('"')) {
+                    description = description.slice(1, -1);
+                }
+                if (description) description = description.replace(/""/g, '"');
+
+                // Cleanup Price
+                if (priceStr?.startsWith('"') && priceStr?.endsWith('"')) {
+                    priceStr = priceStr.slice(1, -1);
+                }
+                if (priceStr) {
+                    priceStr = priceStr.replace("$", "").replace(",", ".").trim();
+                }
+
+                const price = parseFloat(priceStr);
 
                 if (code && !isNaN(price)) {
                     data.push({

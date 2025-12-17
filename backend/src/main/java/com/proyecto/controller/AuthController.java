@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @CrossOrigin
 public class AuthController {
@@ -50,7 +50,7 @@ public class AuthController {
     @PostMapping("/recuperar")
     public ResponseEntity<?> solicitarRecuperacion(@RequestBody RecuperarRequest request) {
         String token = recuperacionService.generarTokenRecuperacion(request.getEmail());
-        return ResponseEntity.ok("Token generado (enviar por email): " + token);
+        return ResponseEntity.ok(new MessageResponse("Token generado (enviar por email): " + token));
     }
 
     @PostMapping("/recuperar/confirmar")

@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @CrossOrigin
 public class AdminController {
@@ -23,6 +23,21 @@ public class AdminController {
     private final ImportacionCsvRepository importacionCsvRepository;
     private final UsuarioRepository usuarioRepository;
     private final com.proyecto.repository.ProductRepository productRepository;
+    private final com.proyecto.service.BackupService backupService;
+
+    // ... existing imports/fields ...
+
+    @GetMapping("/backup")
+    public ResponseEntity<byte[]> descargarBackup() {
+        byte[] backupData = backupService.generateJsonBackup();
+        String filename = "taskflow_backup_" + java.time.LocalDate.now() + ".json";
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + filename + "\"")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(backupData);
+    }
 
     @GetMapping("/productos")
     public ResponseEntity<List<com.proyecto.model.Product>> listarProductos() {

@@ -10,6 +10,7 @@ export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e) => {
@@ -22,7 +23,10 @@ export default function Login() {
             // If backend indicates 2FA is needed (placeholder logic, adjust if backend sends specific flag)
             // For now, standard login flow
             loginStore.login(data.token, data.email, data.rol);
-            navigate(data.rol === "ADMIN" ? "/admin" : data.rol === "VENDEDOR" ? "/vendedor/buscar" : "/");
+            setSuccess("¡Bienvenido! Redirigiendo...");
+            setTimeout(() => {
+                navigate(data.rol === "ADMIN" ? "/admin" : data.rol === "VENDEDOR" ? "/vendedor/buscar" : "/");
+            }, 1000);
         } catch (err) {
             console.error(err);
             setError(err.message || "Error al iniciar sesión");
@@ -51,6 +55,13 @@ export default function Login() {
                 </div>
 
                 <div className="p-8">
+                    {/* Success Alert */}
+                    {success && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 text-sm flex items-center justify-center gap-2 animate-in fade-in zoom-in duration-300">
+                            <span className="font-bold">✨</span> {success}
+                        </div>
+                    )}
+
                     {/* Error Alert */}
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center justify-center gap-2">
@@ -58,65 +69,84 @@ export default function Login() {
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 ml-1">Correo Electrónico</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-                                <input
-                                    type="email"
-                                    placeholder="ejemplo@correo.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center ml-1">
-                                <label className="text-sm font-medium text-gray-700">Contraseña</label>
-                                <Link to="/recuperar" className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
-                                    ¿Olvidaste tu contraseña?
-                                </Link>
-                            </div>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl shadow-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed group"
+                    <div className="mt-6">
+                        <a
+                            href="https://victorpetruccio.online/api/oauth2/authorization/google"
+                            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all mb-4"
                         >
-                            {loading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                                <span className="flex items-center">
-                                    Entrar
-                                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                </span>
-                            )}
-                        </button>
-                    </form>
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
+                            Continuar con Google
+                        </a>
 
-                    <div className="text-center mt-6">
-                        <p className="text-sm text-gray-500">
-                            ¿No tienes cuenta?{" "}
-                            <Link to="/registro" className="text-blue-600 font-medium hover:underline">
-                                Regístrate
-                            </Link>
-                        </p>
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-200"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white text-gray-500">O ingresa con tu email</span>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 ml-1">Correo Electrónico</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                                    <input
+                                        type="email"
+                                        placeholder="ejemplo@correo.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center ml-1">
+                                    <label className="text-sm font-medium text-gray-700">Contraseña</label>
+                                    <Link to="/recuperar" className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                                        ¿Olvidaste tu contraseña?
+                                    </Link>
+                                </div>
+                                <div className="relative">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl shadow-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed group"
+                            >
+                                {loading ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <span className="flex items-center">
+                                        Entrar
+                                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                    </span>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="text-center mt-6">
+                            <p className="text-sm text-gray-500">
+                                ¿No tienes cuenta?{" "}
+                                <Link to="/registro" className="text-blue-600 font-medium hover:underline">
+                                    Regístrate
+                                </Link>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

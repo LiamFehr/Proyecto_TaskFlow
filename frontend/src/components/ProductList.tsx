@@ -1,5 +1,5 @@
 import { Product } from "../types";
-import { Plus, LogIn } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PaymentOptionsDisplay from "./PaymentOptionsDisplay";
 import { useAuthStore } from "../store/authStore";
@@ -28,7 +28,7 @@ export default function ProductList({ products, onSelect }: ProductListProps) {
             {products.map((p) => (
                 <div
                     key={p.id}
-                    className="bg-white border-2 border-slate-100 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-8 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 group"
+                    className="bg-white border-2 border-slate-100 rounded-xl md:rounded-[2rem] p-3 md:p-8 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 group"
                 >
                     <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-12">
                         {/* LEFT COLUMN: Product Info & Main Action */}
@@ -42,19 +42,19 @@ export default function ProductList({ products, onSelect }: ProductListProps) {
                                 </div>
 
                                 {/* Description */}
-                                <h3 className="text-lg md:text-3xl font-bold text-slate-800 leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+                                <h3 className="text-2xl md:text-3xl font-bold text-slate-800 leading-tight mb-2 group-hover:text-blue-700 transition-colors">
                                     {p.description}
                                 </h3>
                                 {p.barcode && (
-                                    <p className="text-xs md:text-sm text-slate-400 font-mono truncate">{p.barcode}</p>
+                                    <p className="text-sm text-slate-400 font-mono truncate">{p.barcode}</p>
                                 )}
                             </div>
 
                             {/* Price & Button */}
                             <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-slate-100 flex items-center justify-between gap-4">
                                 <div>
-                                    <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Precio Lista</p>
-                                    <p className="text-3xl md:text-5xl font-black text-emerald-600 tracking-tight">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Precio Lista</p>
+                                    <p className="text-4xl md:text-5xl font-black text-emerald-600 tracking-tight">
                                         ${p.price.toLocaleString('es-AR')}
                                     </p>
                                 </div>

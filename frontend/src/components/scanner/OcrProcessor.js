@@ -42,7 +42,7 @@ export async function procesarImagen(canvas) {
 
         // Send to backend using Axios directly to handle Multipart/Form-Data correctly
         // (The custom request.js utility forces JSON, which breaks file uploads)
-        const response = await axios.post(`${apiBase}/api/ocr/scan`, formData, {
+        const response = await axios.post(`${apiBase}/ocr/scan`, formData, {
             headers: {
                 'Authorization': token ? `Bearer ${token}` : '',
             },

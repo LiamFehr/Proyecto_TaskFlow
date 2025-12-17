@@ -91,11 +91,11 @@ export default function PaymentOptionsDisplay({ price, showTitle = true, columns
                         amountSize = "text-sm sm:text-base";
                         iconSize = 14;
                     } else if (mobileConfig) {
-                        // Mobile Config: Larger than dense, but flexible for mobile 2-col
-                        paddingClass = "p-3 min-h-[85px]"; // Slightly less padding than default, but good height
-                        textSize = "text-[11px] sm:text-sm"; // Adaptive text
-                        amountSize = "text-lg sm:text-xl";
-                        iconSize = 18;
+                        // Mobile Config: Larger and bolder for better readability on phones
+                        paddingClass = "p-4 min-h-[95px]"; // Increased padding and height
+                        textSize = "text-xs sm:text-sm font-bold"; // Bolder text
+                        amountSize = "text-xl sm:text-2xl"; // Larger price
+                        iconSize = 20; // Larger icon
                     }
 
                     return (

@@ -4,6 +4,7 @@ import Login from "../auth/Login";
 import Registro from "../auth/Registro";
 import RecuperarCuenta from "../auth/RecuperarCuenta";
 import Verificacion2FA from "../auth/Verificacion2FA";
+import OAuthCallback from "../auth/OAuthCallback";
 import CartPage from "../pages/CartPage";
 
 import ClienteLayout from "../layouts/ClienteLayout";
@@ -16,6 +17,7 @@ import SellerOrdersPage from "../pages/SellerOrdersPage";
 import ImportarCSV from "../admin/ImportarCSV";
 import Home from "../pages/Home";
 import SearchPage from "../pages/SearchPage";
+import PresupuestadorPage from "../pages/PresupuestadorPage";
 
 export default function AppRouter() {
     return (
@@ -25,7 +27,9 @@ export default function AppRouter() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Registro />} />
                 <Route path="/recuperar" element={<RecuperarCuenta />} />
+                <Route path="/recuperar" element={<RecuperarCuenta />} />
                 <Route path="/2fa" element={<Verificacion2FA />} />
+                <Route path="/oauth/callback" element={<OAuthCallback />} />
 
                 {/* protected cart */}
                 <Route
@@ -59,6 +63,7 @@ export default function AppRouter() {
                 >
                     <Route index element={<SellerOrdersPage />} />
                     <Route path="buscar" element={<VendedorBuscador />} />
+                    <Route path="presupuestador" element={<PresupuestadorPage />} />
                 </Route>
 
                 {/* admin */}

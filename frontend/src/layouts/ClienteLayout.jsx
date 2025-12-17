@@ -14,7 +14,7 @@ export default function ClienteLayout() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Link to="/">
-                            <img src="/vhp-logo.jpg" alt="VHP Logo" className="h-10 w-auto object-contain" />
+                            <img src="/assets/images/logo_navidad.png" alt="VHP Logo" className="h-28 w-auto object-contain" />
                         </Link>
                     </div>
                     <nav className="flex items-center gap-4">

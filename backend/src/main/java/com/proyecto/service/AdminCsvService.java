@@ -96,14 +96,28 @@ public class AdminCsvService {
 
             while ((linea = br.readLine()) != null) {
                 lineaN++;
-                if (lineaN == 1 && linea.toLowerCase().contains("codigo")) {
-                    // opcional: saltear encabezado
-                    continue;
+
+                // BOM check on first line
+                if (lineaN == 1) {
+                    // Remove BOM if present (UTF-8)
+                    linea = linea.replace("\uFEFF", "");
+                    if (linea.toLowerCase().contains("codigo")) {
+                        continue;
+                    }
                 }
 
-                String[] partes = linea.split(";");
+                // Regex to split by comma, respecting quotes
+                // Matches commas that are followed by an even number of quotes (meaning they
+                // are outside quotes)
+                String[] partes = linea.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+
+                // User provided CSV Example:
+                // id,legacy_id,code,barcode,description,price,hidden,searchable
+                // indices: 0 1 2 3 4 5 6 7
+
+                // Fallback for simple semicolon
                 if (partes.length < 3) {
-                    partes = linea.split(",");
+                    partes = linea.split(";");
                 }
 
                 if (partes.length < 3) {
@@ -111,43 +125,88 @@ public class AdminCsvService {
                     continue;
                 }
 
-                String codigo = partes[0].trim();
-                String descripcion = partes[1].trim();
-                String precioStr = partes[2].trim();
+                // DETERMINE COLUMNS DYNAMICALLY OR FIXED BASED ON SAMPLE
+                // Based on sample: 145,1128,1128,1128,"PORTA CAFE...",960,false,true
+                // Code is index 2. Description is index 4. Price is index 5.
+
+                String codigo;
+                String descripcion;
+                String precioStr;
+
+                if (partes.length >= 6) {
+                    // Standard 8-column format from sample
+                    codigo = partes[2].trim();
+                    descripcion = partes[4].trim();
+                    precioStr = partes[5].trim();
+                } else {
+                    // Fallback to simple 3-column [code, desc, price] if file is different
+                    codigo = partes[0].trim();
+                    descripcion = partes[1].trim();
+                    precioStr = partes[2].trim();
+                }
+
+                // Remove quotes around description if present
+                if (descripcion.startsWith("\"") && descripcion.endsWith("\"")) {
+                    descripcion = descripcion.substring(1, descripcion.length() - 1);
+                }
+                // Handle internal quotes escaped as ""
+                descripcion = descripcion.replace("\"\"", "\"");
+
+                if (codigo.isEmpty()) {
+                    errores.append("Línea ").append(lineaN).append(": el código no puede estar vacío\n");
+                    continue;
+                }
 
                 try {
-                    double precioLista = Double.parseDouble(precioStr);
-                    java.math.BigDecimal price = java.math.BigDecimal.valueOf(precioLista);
+                    // CLEANING PRICE (comma to dot, remove $, remove quotes)
+                    String precioClean = precioStr.replace("\"", "").replace("$", "").replace(",", ".").trim();
 
-                    // Buscar por código (ProductRepository debe tener findByCode)
+                    double precioVal = Double.parseDouble(precioClean);
+                    java.math.BigDecimal price = java.math.BigDecimal.valueOf(precioVal);
+                    if (price.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                        errores.append("Línea ").append(lineaN).append(": el precio no puede ser negativo\n");
+                        continue;
+                    }
+
+                    // --- LOGICA UPSERT (Opción A) ---
+                    // 1. Buscar o crear nueva instancia vacía
                     Product product = productRepository.findByCode(codigo)
-                            .orElse(Product.builder()
-                                    .code(codigo)
-                                    .hidden(false)
-                                    .searchable(true)
-                                    .build());
+                            .orElse(new Product());
 
                     boolean esNuevo = (product.getId() == null);
 
+                    // 2. Setear VALORES (siempre, tanto para new como update)
+                    product.setCode(codigo); // Importante setearlo si es nuevo
                     product.setDescription(descripcion);
                     product.setPrice(price);
 
-                    // Si es nuevo, defaults (o manejados en builder)
-                    if (product.getHidden() == null)
-                        product.setHidden(false);
-                    if (product.getSearchable() == null)
-                        product.setSearchable(true);
+                    if (partes.length > 3 && partes[3].trim().length() > 0 && !partes[3].equals(codigo)) {
+                        product.setBarcode(partes[3].trim());
+                    }
 
+                    // 3. Defaults para nuevos
+                    if (esNuevo) {
+                        product.setHidden(false);
+                        product.setSearchable(true);
+                    }
+
+                    // 4. Guardar
                     productRepository.save(product);
 
-                    if (esNuevo)
+                    if (esNuevo) {
                         insertados++;
-                    else
+                    } else {
                         actualizados++;
+                    }
 
                 } catch (NumberFormatException ex) {
                     errores.append("Línea ").append(lineaN)
                             .append(": precio inválido -> ").append(precioStr).append("\n");
+                } catch (Exception ex) {
+                    // Catch genérico para que una fila mala no aborte todo el archivo
+                    errores.append("Línea ").append(lineaN)
+                            .append(": error inesperado -> ").append(ex.getMessage()).append("\n");
+                    ex.printStackTrace(); // Log to console for debugging
                 }
             }
 

@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,14 +17,20 @@ public class RecuperacionService {
     private final RecuperacionTokenRepository tokenRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
-    // private final EmailService emailService; // si luego querés enviar emails
-    // reales
+    private final EmailService emailService;
 
     public String generarTokenRecuperacion(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        String token = UUID.randomUUID().toString();
+        // Generate 6-char alphanumeric code
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed similar chars (I,1,0,O)
+        StringBuilder sb = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < 6; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        String token = sb.toString();
 
         RecuperacionToken rec = RecuperacionToken.builder()
                 .token(token)
@@ -36,8 +41,9 @@ public class RecuperacionService {
 
         tokenRepository.save(rec);
 
-        // enviar email con el token (luego)
-        // emailService.enviarRecuperacion(usuario.getEmail(), token);
+        // enviar email con el token
+        // enviar email con el token
+        emailService.enviarRecuperacion(usuario.getEmail(), token);
 
         return token;
     }
@@ -48,6 +54,10 @@ public class RecuperacionService {
 
         if (rec.isUsado() || rec.getExpiracion().isBefore(LocalDateTime.now())) {
             throw new IllegalStateException("Token expirado o ya usado");
+        }
+
+        if (nuevaPassword == null || nuevaPassword.length() < 8) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres.");
         }
 
         Usuario usuario = rec.getUsuario();

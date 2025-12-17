@@ -13,6 +13,8 @@ export default function SearchBar({ value, onChange, onKeyPress, hasError }: Sea
             <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${hasError ? 'text-red-400' : 'text-gray-400'}`} size={20} />
             <input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Buscar por código o código de barras..."
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
