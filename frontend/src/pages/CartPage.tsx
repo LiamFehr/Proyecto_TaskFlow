@@ -1,58 +1,75 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCartStore } from "../store/cartStore";
+import { useAuthStore } from "../store/authStore";
 import CartList from "../components/CartList";
 import PaymentSummary from "../components/PaymentSummary";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ShoppingBag, CheckCircle, X, Trash2 } from "lucide-react";
 import { http } from "../api/http";
-import { Pedido } from "../types";
 
 export default function CartPage() {
     const items = useCartStore((s) => s.items);
     const removeItem = useCartStore((s) => s.removeItem);
     const updateQuantity = useCartStore((s) => s.updateQuantity);
     const clear = useCartStore((s) => s.clear);
+    const token = useAuthStore((state) => state.token);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [clientName, setClientName] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
+    const [orderUuid, setOrderUuid] = useState("");
+    const clickingRef = useRef(false);
 
-    const total = items.reduce((acc, item) => acc + item.qty * item.price, 0);
+    const total = items.reduce((acc, item) => acc + item.qty * (item.finalPrice || item.price || 0), 0);
 
     const handleCloseCart = () => {
+        setOrderUuid(crypto.randomUUID());
         setIsModalOpen(true);
     };
 
     const handleSubmitOrder = async () => {
-        if (!clientName.trim()) return;
+        if (!clientName.trim() || isSubmitting || clickingRef.current) return;
 
+        clickingRef.current = true;
         setIsSubmitting(true);
         try {
-            const pedido: Pedido = {
-                cliente: clientName,
-                fecha: new Date().toISOString(),
-                productos: items.map(item => ({
-                    codigo: item.code,
-                    descripcion: item.description,
-                    cantidad: item.qty
-                }))
+            const pedidoRemoto = {
+                uuid: orderUuid,
+                terminal: "WEB_GUEST",
+                clienteNombre: clientName,
+                items: items.map(item => ({
+                    productoId: item.id, // ID en la VPS (products)
+                    cantidad: item.qty,
+                    precioUnitario: item.finalPrice || item.price || 0
+                })),
+                total: total
             };
 
-            await http.post("/pedidos", pedido);
+            // Enviar sin token si es invitado, o con token si está logueado
+            const config = token ? {
+                headers: { 'Authorization': `Bearer ${token}` }
+            } : {};
 
-            setSuccessMessage("Tu pedido fue enviado con éxito");
+            await http.post("/pedidos/remotos", pedidoRemoto, config);
+
+            setSuccessMessage("Tu pedido fue enviado con éxito. En breve será procesado en caja.");
             clear();
             setIsModalOpen(false);
             setClientName("");
 
-            // Clear success message after 5 seconds
-            setTimeout(() => setSuccessMessage(""), 5000);
-        } catch (error) {
-            console.error("Error sending order:", error);
+            // Clear success message after 10 seconds
+            setTimeout(() => setSuccessMessage(""), 10000);
+        } catch (error: any) {
+            console.error("Error sending order:", {
+                message: error.message,
+                status: error.response?.status,
+                data: error.response?.data
+            });
             alert("Hubo un error al enviar el pedido. Por favor intente nuevamente.");
         } finally {
             setIsSubmitting(false);
+            clickingRef.current = false;
         }
     };
 
@@ -63,18 +80,18 @@ export default function CartPage() {
                 <header className="bg-white shadow-md">
                     <div className="container mx-auto px-4 py-4">
                         <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3">
                                 <Link
                                     to="/"
                                     className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                                 >
-                                    <img src="/vhp-logo.jpg" alt="VHP Logo" className="h-20 w-auto object-contain" />
+                                    <img src="/vhp-logo.jpg" alt="VHP Logo" className="h-12 sm:h-20 w-auto object-contain" />
                                 </Link>
                                 <div className="h-6 w-px bg-gray-300"></div>
                                 <div className="flex items-center gap-2">
-                                    <ShoppingBag className="text-blue-600" size={24} />
-                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                        Carrito de Compras
+                                    <ShoppingBag className="text-blue-600" size={20} />
+                                    <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                        Carrito
                                     </h1>
                                 </div>
                             </div>
@@ -84,7 +101,7 @@ export default function CartPage() {
 
                 <main className="container mx-auto px-4 py-8">
                     <div className="max-w-4xl mx-auto">
-                        <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                        <div className="bg-white rounded-2xl shadow-lg p-8 sm:p-12 text-center">
                             <ShoppingBag className="mx-auto text-gray-300 mb-4" size={64} />
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">
                                 Tu carrito está vacío
@@ -132,28 +149,29 @@ export default function CartPage() {
             <header className="bg-white shadow-md">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <Link
                                 to="/"
                                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                             >
-                                <img src="/vhp-logo.jpg" alt="VHP Logo" className="h-20 w-auto object-contain" />
+                                <img src="/vhp-logo.jpg" alt="VHP Logo" className="h-12 sm:h-20 w-auto object-contain" />
                             </Link>
                             <div className="h-6 w-px bg-gray-300"></div>
                             <div className="flex items-center gap-2">
-                                <ShoppingBag className="text-blue-600" size={24} />
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    Carrito de Compras
+                                <ShoppingBag className="text-blue-600" size={20} />
+                                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    Carrito
                                 </h1>
                             </div>
                         </div>
                         {items.length > 0 && (
                             <button
                                 onClick={clear}
-                                className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200"
+                                className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 text-sm"
                             >
-                                <Trash2 size={18} />
-                                Vaciar Carrito
+                                <Trash2 size={16} />
+                                <span className="hidden sm:inline">Vaciar Carrito</span>
+                                <span className="sm:hidden">Vaciar</span>
                             </button>
                         )}
                     </div>
@@ -179,7 +197,7 @@ export default function CartPage() {
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
                         <div className="flex justify-between items-center">
                             <span className="text-xl font-semibold">Total:</span>
-                            <span className="text-4xl font-bold">${total.toFixed(2)}</span>
+                            <span className="text-2xl sm:text-4xl font-bold">${total.toFixed(2)}</span>
                         </div>
                     </div>
 

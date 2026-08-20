@@ -17,6 +17,18 @@ export async function request(method, url, body = null, token = null) {
     const res = await fetch(apiBase + url, options);
 
     if (!res.ok) {
+        if (res.status === 401) {
+            const hadToken = !!localStorage.getItem('token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('email');
+            localStorage.removeItem('rol');
+            // Only redirect to login if the user had an active session (token expired).
+            // Public pages without a token should not be forcefully redirected.
+            if (hadToken) {
+                window.location.href = '/login';
+            }
+            throw new Error("Sesión expirada");
+        }
         const text = await res.text();
         throw new Error(text || "Error en la solicitud");
     }

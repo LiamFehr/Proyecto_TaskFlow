@@ -6,11 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // ... imports
 import { useEffect } from "react";
 import { useAuthStore } from "./store/authStore";
+import HelpCenter from "./components/HelpCenter";
 
 const queryClient = new QueryClient();
 
 export default function App() {
     const cargarSesion = useAuthStore((state) => state.cargarSesion);
+    const rol = useAuthStore((state) => state.rol);
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
     useEffect(() => {
         cargarSesion();
@@ -19,6 +22,7 @@ export default function App() {
     return (
         <QueryClientProvider client={queryClient}>
             <AppRouter />
+            {isAuthenticated && <HelpCenter role={rol as 'ADMIN' | 'VENDEDOR' | 'CLIENTE'} />}
         </QueryClientProvider>
     );
 }

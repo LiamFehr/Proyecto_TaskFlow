@@ -4,7 +4,10 @@ import { useAuthStore } from "../store/authStore";
 import { useCartStore } from "../store/cartStore";
 
 export default function ClienteLayout() {
-    const { isAuthenticated, logout, email, rol } = useAuthStore();
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+    const logout = useAuthStore((state) => state.logout);
+    const email = useAuthStore((state) => state.email);
+    const rol = useAuthStore((state) => state.rol);
     const items = useCartStore((state) => state.items);
     const itemCount = items.reduce((acc, item) => acc + item.qty, 0);
 
@@ -14,7 +17,7 @@ export default function ClienteLayout() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Link to="/">
-                            <img src="/assets/images/logo_navidad.png" alt="VHP Logo" className="h-28 w-auto object-contain" />
+                            <img src="/assets/images/logo_navidad.png" alt="VHP Logo" className="h-10 sm:h-14 w-auto object-contain" />
                         </Link>
                     </div>
                     <nav className="flex items-center gap-4">
@@ -25,7 +28,7 @@ export default function ClienteLayout() {
                                 </span>
                                 {(rol === "ADMIN" || rol === "VENDEDOR") && (
                                     <Link
-                                        to={rol === "ADMIN" ? "/admin" : "/vendedor"}
+                                        to="/vendedor"
                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1"
                                     >
                                         <LayoutDashboard className="h-4 w-4" />
@@ -57,20 +60,14 @@ export default function ClienteLayout() {
                         )}
 
                         <div className="relative">
-                            {isAuthenticated ? (
-                                <Link to="/cart" className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-all relative block" title="Ver Carrito">
-                                    <ShoppingCart className="h-5 w-5" />
-                                    {itemCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full">
-                                            {itemCount}
-                                        </span>
-                                    )}
-                                </Link>
-                            ) : (
-                                <Link to="/login" className="p-2 text-gray-400 hover:text-primary-600 hover:bg-gray-50 rounded-full transition-all relative block" title="Iniciar Sesión para ver Carrito">
-                                    <ShoppingCart className="h-5 w-5" />
-                                </Link>
-                            )}
+                            <Link to="/cart" className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-all relative block" title="Ver Carrito">
+                                <ShoppingCart className="h-5 w-5" />
+                                {itemCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full">
+                                        {itemCount}
+                                    </span>
+                                )}
+                            </Link>
                         </div>
                     </nav>
                 </div>
@@ -80,7 +77,7 @@ export default function ClienteLayout() {
             </main>
             <footer className="bg-white border-t border-gray-200 py-6 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
-                    &copy; {new Date().getFullYear()} TaskFlow. Todos los derechos reservados.
+                    &copy; {new Date().getFullYear()} Next System. Todos los derechos reservados.
                 </div>
             </footer>
         </div>

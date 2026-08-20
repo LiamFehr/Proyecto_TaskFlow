@@ -2,8 +2,12 @@ export interface Product {
     id: number;
     code: string;
     barcode: string;
+    name: string;
     description: string;
-    price: number;
+    finalPrice: number;
+    price: number; // Keep for now to avoid immediate breakage
+    stock: number;
+    marca?: string;
     hidden: boolean;
     searchable: boolean;
 }

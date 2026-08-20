@@ -12,31 +12,36 @@ import java.util.List;
 public class VendedorService {
 
     private final ProductRepository productRepository;
-    // private final PedidoFileService pedidoFileService; // Retirado temporalmente
-    // por no uso
+    private final PedidoFileService pedidoFileService;
 
-    public List<Product> buscarProductos(String search) {
+    public List<Product> buscarProductos(String search, String marca, boolean exactOnly) {
         if (search == null || search.isBlank()) {
             return List.of();
         }
 
-        // Primero probamos por código exacto (ProductRepository tiene
-        // findByCodeAndHiddenFalse...)
-        return productRepository.findByCodeAndHiddenFalseAndSearchableTrue(search)
-                .map(List::of)
-                .orElseGet(() -> productRepository.findByDescriptionContainingIgnoreCase(search));
-        // Nota: findByDescription... debe existir en ProductRepository o JPA lo crea si
-        // sigue convención
+        // 1. Try exact match first (as requested: "solo que si hace mach no sugerido")
+        java.util.Optional<Product> exact = productRepository.findExactByCodeOrBarcode(search);
+        if (exact.isPresent()) {
+            return List.of(exact.get());
+        }
+
+        // 2. Otherwise do broad search with prioritized logic (ONLY if not exactOnly)
+        if (exactOnly) {
+            return List.of();
+        }
+        org.springframework.data.domain.Page<Product> page = productRepository.findWithFilters(
+                search,
+                marca,
+                false, // hidden = false
+                org.springframework.data.domain.PageRequest.of(0, 50));
+        return page.getContent();
     }
 
-    // Métodos stub – debes implementarlos en base a tu formato JSON actual:
-
-    public List<?> listarPedidosPendientes() {
-        // TODO: implementar lógica real de pedidos
-        return List.of();
+    public List<String> listarPedidosPendientes() {
+        return pedidoFileService.listarPedidos();
     }
 
     public void marcarPedidoProcesado(String pedidoId) {
-        // TODO: borrar/mover archivo JSON correspondiente a ese pedido
+        pedidoFileService.eliminarPedido(pedidoId);
     }
 }

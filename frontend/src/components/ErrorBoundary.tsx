@@ -1,7 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 
 interface Props {
-    children: ReactNode;
+    children?: ReactNode;
 }
 
 interface State {
@@ -26,19 +26,22 @@ export class ErrorBoundary extends Component<Props, State> {
     public render() {
         if (this.state.hasError) {
             return (
-                <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-                    <div className="bg-white p-8 rounded-xl shadow-xl max-w-2xl w-full">
-                        <h1 className="text-2xl font-bold text-red-600 mb-4">Algo salió mal</h1>
-                        <pre className="bg-gray-100 p-4 rounded-lg overflow-auto text-sm font-mono text-gray-800">
-                            {this.state.error?.toString()}
-                        </pre>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Recargar página
-                        </button>
+                <div className="p-8 m-4 text-red-400 bg-red-900/20 rounded-xl border border-red-500/20 min-h-[200px] flex flex-col justify-center">
+                    <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                        ⚠️ Error de Renderizado
+                    </h2>
+                    <p className="mb-4 text-slate-300">Ocurrió un error inesperado al cargar esta página.</p>
+                    <div className="bg-slate-950 p-6 rounded-lg border border-red-500/20 shadow-inner">
+                        <code className="text-sm font-mono text-red-300 break-words whitespace-pre-wrap">
+                            {this.state.error?.toString() || "Error desconocido"}
+                        </code>
                     </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-6 px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold w-fit transition-colors"
+                    >
+                        Recargar Página
+                    </button>
                 </div>
             );
         }

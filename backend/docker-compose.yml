@@ -1,0 +1,86 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16
+    container_name: taskflow-postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=taskflow
+      - POSTGRES_USER=taskflow_user
+      - POSTGRES_PASSWORD=Taskflow_2026_Segura!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskflow-network
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: taskflow-redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    networks:
+      - taskflow-network
+    restart: always
+
+  taskflow-agente:
+    image: taskflow-agente:v1.0
+    container_name: taskflow-agente
+    ports:
+      - 8001:8001
+    volumes:
+      - agente_uploads:/app/uploads
+    networks:
+      - taskflow-network
+    restart: always
+    depends_on:
+      - backend
+
+  backend:
+    image: taskflow-app-backend:v5.24
+    container_name: taskflow-backend
+    ports:
+      - 8000:8000
+    volumes:
+      - ./backend.jar:/app/backend.jar
+    entrypoint: ["java", "-jar", "/app/backend.jar"]
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - AI_AGENT_URL=http://taskflow-agente:8001
+      - REDIS_HOST=redis
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/taskflow
+      - SPRING_DATASOURCE_USERNAME=taskflow_user
+      - SPRING_DATASOURCE_PASSWORD=Taskflow_2026_Segura!
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - taskflow-network
+    restart: always
+
+  frontend:
+    image: taskflow-app-frontend:v5.27
+    container_name: taskflow-frontend
+    ports:
+      - 3000:80
+    depends_on:
+      - backend
+    networks:
+      - taskflow-network
+    restart: always
+
+volumes:
+  postgres_data:
+    external: true
+    name: taskflow-deploy_postgres_data
+  redis_data:
+  agente_uploads:
+
+networks:
+  taskflow-network:
+    driver: bridge

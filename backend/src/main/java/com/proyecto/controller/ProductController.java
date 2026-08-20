@@ -1,6 +1,7 @@
 package com.proyecto.controller;
 
 import com.proyecto.dto.ProductDto;
+import com.proyecto.exception.ProductNotFoundException;
 import com.proyecto.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,19 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAll(pageable));
     }
 
+    @GetMapping("/v1/search-exact")
+    public ResponseEntity<ProductDto> searchExact(@RequestParam("q") String text) {
+        try {
+            return ResponseEntity.ok(productService.findByCode(text));
+        } catch (ProductNotFoundException e) {
+            try {
+                return ResponseEntity.ok(productService.findByBarcode(text));
+            } catch (ProductNotFoundException e2) {
+                return ResponseEntity.notFound().build();
+            }
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getById(id));
@@ -31,8 +45,9 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<Page<ProductDto>> search(
             @RequestParam("q") String text,
+            @RequestParam(required = false) String marca,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(productService.search(text, pageable));
+        return ResponseEntity.ok(productService.search(text, marca, pageable));
     }
 
     @GetMapping("/code/{code}")

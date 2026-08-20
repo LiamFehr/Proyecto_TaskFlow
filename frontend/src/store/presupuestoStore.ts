@@ -3,9 +3,11 @@ import { create } from "zustand";
 interface PresupuestoItem {
     id: string; // unique ID
     productId?: number; // if catalog item
+    code?: string;
     description: string;
     price: number;
     quantity: number;
+    vatRate?: number; // Alícuota IVA en % (21, 10.5, 0) — solo para ítems manuales
 }
 
 interface PresupuestoStore {
@@ -23,6 +25,7 @@ interface PresupuestoStore {
     removeItem: (id: string) => void;
     updateQuantity: (id: string, qty: number) => void;
     setClientInfo: (name: string, phone: string, obs: string, dni: string, iva: string, city: string, prov: string, fname: string) => void;
+    setItems: (items: Omit<PresupuestoItem, "id">[]) => void;
     clear: () => void;
 }
 
@@ -51,6 +54,10 @@ export const usePresupuestoStore = create<PresupuestoStore>((set) => ({
         // New item
         const id = Math.random().toString(36).substr(2, 9);
         return { items: [...state.items, { ...item, id }] };
+    }),
+
+    setItems: (newItems) => set({
+        items: newItems.map(item => ({ ...item, id: Math.random().toString(36).substr(2, 9) }))
     }),
 
     removeItem: (id) => set((state) => ({

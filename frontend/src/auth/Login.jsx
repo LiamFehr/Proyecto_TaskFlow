@@ -6,7 +6,7 @@ import { Lock, Mail, Loader2, ArrowRight, Home } from "lucide-react";
 
 export default function Login() {
     const navigate = useNavigate();
-    const loginStore = useAuthStore();
+    const login = useAuthStore((state) => state.login);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -22,10 +22,10 @@ export default function Login() {
 
             // If backend indicates 2FA is needed (placeholder logic, adjust if backend sends specific flag)
             // For now, standard login flow
-            loginStore.login(data.token, data.email, data.rol);
+            login(data.token, data.email, data.rol);
             setSuccess("¡Bienvenido! Redirigiendo...");
             setTimeout(() => {
-                navigate(data.rol === "ADMIN" ? "/admin" : data.rol === "VENDEDOR" ? "/vendedor/buscar" : "/");
+                navigate(data.rol === "ADMIN" ? "/admin" : data.rol === "VENDEDOR" ? "/vendedor" : "/");
             }, 1000);
         } catch (err) {
             console.error(err);

@@ -9,7 +9,6 @@ export function calculatePayments(total: number) {
         transfer: total, // Same as debit, no discount
         debit: total,
         cuotas3: total / 3,
-        naranja5: total / (total > 200000 ? 8 : 5), // 8 installments if >200k, else 5
-        bancoEntreRios: total / 6, // Always available for display
+        naranja8: total / 8, // Always 8 installments
     };
 }

@@ -17,8 +17,11 @@ public class ProductDto {
     private Long id;
     private String code;
     private String barcode;
+    private String name;
     private String description;
     private BigDecimal price;
+    private BigDecimal stock;
     private Boolean hidden;
     private Boolean searchable;
+    private String marca;
 }

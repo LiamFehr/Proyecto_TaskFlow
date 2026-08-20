@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL para Producción
+  # ============================================
+  db:
+    image: postgres:16-alpine
+    container_name: taskflow-postgres-prod
+    restart: always
+
+    environment:
+      POSTGRES_DB: ${TF_DB_NAME}
+      POSTGRES_USER: ${TF_DB_USER}
+      POSTGRES_PASSWORD: ${TF_DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    volumes:
+      - ./db/prod/data:/var/lib/postgresql/data
+      - ./backups/prod:/backups
+
+    ports:
+      - "${TF_DB_PORT:-5432}:5432"
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${TF_DB_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - taskflow-prod-network
+
+    # Límites de recursos para producción
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+networks:
+  taskflow-prod-network:
+    driver: bridge

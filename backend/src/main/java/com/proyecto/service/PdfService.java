@@ -174,12 +174,12 @@ public class PdfService {
             NumberFormat currency = NumberFormat.getCurrencyInstance(arLocale);
             double total = 0;
 
-            for (PresupuestoDto.PresupuestoItemDto item : data.getItems()) {
+            for (PresupuestoDto.ItemDto item : data.getItems()) {
                 addBodyCell(table, String.valueOf(item.getQuantity()), tableBodyFont, Element.ALIGN_CENTER);
                 addBodyCell(table, item.getDescription(), tableBodyFont, Element.ALIGN_LEFT);
                 addBodyCell(table, currency.format(item.getPrice()), tableBodyFont, Element.ALIGN_RIGHT);
 
-                double subtotal = item.getPrice() * item.getQuantity();
+                double subtotal = item.getPrice().doubleValue() * item.getQuantity().doubleValue();
                 total += subtotal;
                 addBodyCell(table, currency.format(subtotal), tableBodyFont, Element.ALIGN_RIGHT);
             }

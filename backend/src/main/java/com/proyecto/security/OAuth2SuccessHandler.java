@@ -22,7 +22,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UsuarioRepository usuarioRepository;
     private final JwtUtil jwtUtil;
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:https://victorpetruccio.online}")
     private String frontendUrl;
 
     @Override

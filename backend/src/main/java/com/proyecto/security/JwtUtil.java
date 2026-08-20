@@ -17,7 +17,7 @@ public class JwtUtil {
 
     // Must be at least 256 bits (32 chars) for HS256
     private final String SECRET = "cambia-esta-clave-por-una-muy-segura-y-larga-123456";
-    private final long EXPIRATION_MS = 1000L * 60 * 60 * 4; // 4 horas
+    private final long EXPIRATION_MS = 1000L * 60 * 60 * 24 * 30; // 30 días (Redes sociales style)
 
     private Key getSignInKey() {
         return Keys.hmacShaKeyFor(SECRET.getBytes());

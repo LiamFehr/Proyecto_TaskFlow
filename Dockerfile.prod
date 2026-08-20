@@ -1,0 +1,16 @@
+# Backend Production Dockerfile
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+
+# Create data directories
+RUN mkdir -p /app/data/pedidos /app/data/backups
+
+EXPOSE 8000
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]

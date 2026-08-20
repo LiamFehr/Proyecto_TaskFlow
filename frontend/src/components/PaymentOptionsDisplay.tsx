@@ -1,6 +1,9 @@
-import { calculatePayments } from "../utils/paymentCalculator";
-import { Banknote, CreditCard, Landmark } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Banknote, CreditCard, Landmark, Smartphone, MoreHorizontal } from "lucide-react";
 import { cn } from "../lib/utils";
+import { PaymentMethod } from "../types/payment";
+import { apiBase } from "../utils/request";
+import { useAuthStore } from "../store/authStore";
 
 interface PaymentOptionsDisplayProps {
     price: number;
@@ -10,63 +13,69 @@ interface PaymentOptionsDisplayProps {
     mobileConfig?: boolean;
 }
 
-export default function PaymentOptionsDisplay({ price, showTitle = true, columns = 2, dense = false, mobileConfig = false }: PaymentOptionsDisplayProps) {
-    const pay = calculatePayments(price);
-    const naranjaInstallments = price > 200000 ? 8 : 5;
+const iconMap: Record<string, any> = {
+    CASH: Banknote,
+    DEBIT: CreditCard,
+    CREDIT: CreditCard,
+    TRANSFER: Landmark,
+    WAITING_PAYMENT: Smartphone,
+};
 
-    const methods = [
-        {
-            icon: Banknote,
-            name: "Efectivo",
-            discount: "-10%",
-            amount: pay.efectivo,
-            color: "green",
-            gradient: "from-green-500 to-emerald-600"
-        },
-        {
-            icon: Landmark,
-            name: "Transferencia",
-            discount: null,
-            amount: pay.transfer,
-            color: "blue",
-            gradient: "from-blue-500 to-cyan-600"
-        },
-        {
-            icon: CreditCard,
-            name: "Débito",
-            discount: null,
-            amount: pay.debit,
-            color: "purple",
-            gradient: "from-purple-500 to-pink-600"
-        },
-        {
-            icon: CreditCard,
-            name: "3 Cuotas s/interés",
-            discount: null,
-            amount: pay.cuotas3,
-            color: "indigo",
-            gradient: "from-indigo-500 to-violet-600",
-            perMonth: true
-        },
-        {
-            icon: CreditCard,
-            name: `Naranja ${naranjaInstallments} Cuotas`,
-            discount: null,
-            amount: pay.naranja5,
-            color: "orange",
-            gradient: "from-orange-500 to-amber-600",
-            perMonth: true
-        },
-        {
-            icon: CreditCard,
-            name: "Banco Entre Ríos 6 Cuotas",
-            discount: "Solo Vie/Sáb",
-            amount: pay.bancoEntreRios || price / 6,
-            color: "red",
-            gradient: "from-red-500 to-rose-600",
-            perMonth: true
+const gradientMap: Record<string, string> = {
+    CASH: "from-emerald-500 to-teal-600",
+    DEBIT: "from-sky-500 to-blue-600",
+    CREDIT: "from-orange-500 to-amber-600",
+    TRANSFER: "from-indigo-500 to-violet-700",
+    WAITING_PAYMENT: "from-slate-600 to-slate-800",
+};
+
+export default function PaymentOptionsDisplay({ price, showTitle = true, columns = 2, dense = false, mobileConfig = false }: PaymentOptionsDisplayProps) {
+    const [methods, setMethods] = useState<PaymentMethod[]>([]);
+    const [loading, setLoading] = useState(true);
+    const token = useAuthStore(state => state.token);
+
+    useEffect(() => {
+        const fetchMethods = async () => {
+            try {
+                // Si estamos en desarrollo/local y no hay token, podemos usar fetch directo o http util
+                const res = await fetch(`${apiBase}/config/payment-methods`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setMethods(data);
+                }
+            } catch (err) {
+                console.error("Error fetching payment methods:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMethods();
+    }, [token]);
+
+    const calculateAmount = (base: number, method: PaymentMethod) => {
+        if (!method.adjustmentValue) return base;
+        
+        let finalPrice = base;
+        if (method.adjustmentType === 'discount_percent') {
+            finalPrice = base * (1 - (method.adjustmentValue / 100));
+        } else if (method.adjustmentType === 'surcharge_percent') {
+            finalPrice = base * (1 + (method.adjustmentValue / 100));
+        } else if (method.adjustmentType === 'fixed_amount') {
+            finalPrice = base + method.adjustmentValue;
         }
-    ];
+        return finalPrice;
+    };
+
+    if (loading) {
+        return <div className="p-10 text-center text-gray-400">Cargando planes...</div>;
+    }
+
+    if (methods.length === 0) {
+        return <div className="p-10 text-center text-gray-400">No hay medios de pago configurados.</div>;
+    }
 
     return (
         <div className="w-full">
@@ -77,9 +86,17 @@ export default function PaymentOptionsDisplay({ price, showTitle = true, columns
                 (mobileConfig || dense) ? "gap-2" : "gap-3",
                 columns === 1 ? "grid-cols-1" : "grid-cols-2"
             )}>
-                {methods.map((method, idx) => {
-                    const Icon = method.icon;
-                    // Determine styling based on mode
+                {methods.map((method) => {
+                    const Icon = iconMap[method.type] || MoreHorizontal;
+                    const finalAmount = calculateAmount(price, method);
+                    const gradient = method.background || gradientMap[method.type] || "from-gray-400 to-gray-500";
+                    
+                    // Determine labels for discount/surcharge
+                    let badgeLabel = null;
+                    if (method.adjustmentType === 'discount_percent') badgeLabel = `-${method.adjustmentValue}%`;
+                    else if (method.adjustmentType === 'surcharge_percent') badgeLabel = `+${method.adjustmentValue}%`;
+
+                    // Styling logic
                     let paddingClass = "p-4 min-h-[90px]";
                     let textSize = "text-sm md:text-base";
                     let amountSize = "text-xl md:text-2xl";
@@ -91,19 +108,18 @@ export default function PaymentOptionsDisplay({ price, showTitle = true, columns
                         amountSize = "text-sm sm:text-base";
                         iconSize = 14;
                     } else if (mobileConfig) {
-                        // Mobile Config: Larger and bolder for better readability on phones
-                        paddingClass = "p-4 min-h-[95px]"; // Increased padding and height
-                        textSize = "text-xs sm:text-sm font-bold"; // Bolder text
-                        amountSize = "text-xl sm:text-2xl"; // Larger price
-                        iconSize = 20; // Larger icon
+                        paddingClass = "p-4 min-h-[95px]";
+                        textSize = "text-xs sm:text-sm font-bold";
+                        amountSize = "text-xl sm:text-2xl";
+                        iconSize = 20;
                     }
 
                     return (
                         <div
-                            key={idx}
+                            key={method.id}
                             className={cn(
                                 "bg-gradient-to-br text-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 transform cursor-default flex flex-col justify-between",
-                                method.gradient,
+                                gradient.startsWith('from-') ? gradient : `from-${gradient}-500 to-${gradient}-600`,
                                 paddingClass
                             )}
                         >
@@ -116,20 +132,22 @@ export default function PaymentOptionsDisplay({ price, showTitle = true, columns
                                         {(!dense && !mobileConfig) && method.name.includes("Cuotas") && " Cuotas"}
                                     </span>
                                 </div>
-                                {method.discount && (
+                                {badgeLabel && (
                                     <span className={cn("bg-white/20 rounded-full font-bold backdrop-blur-sm shrink-0",
                                         dense ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-0.5 text-[10px] md:text-xs"
                                     )}>
-                                        {method.discount}
+                                        {badgeLabel}
                                     </span>
                                 )}
                             </div>
                             <div className="flex items-baseline gap-1 mt-auto">
                                 <span className={cn("font-bold tracking-tight", amountSize)}>
-                                    ${method.amount.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    ${finalAmount.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                 </span>
-                                {method.perMonth && (
-                                    <span className={cn("font-medium opacity-80", (dense || mobileConfig) ? "text-[10px]" : "text-xs")}>/mes</span>
+                                {(method.installmentsEnabled && method.installmentsQuantity) && (
+                                    <span className={cn("font-medium opacity-80", (dense || mobileConfig) ? "text-[10px]" : "text-xs")}>
+                                        en {method.installmentsQuantity}x ${ (finalAmount / method.installmentsQuantity).toLocaleString('es-AR', { maximumFractionDigits: 0 }) }
+                                    </span>
                                 )}
                             </div>
                         </div>

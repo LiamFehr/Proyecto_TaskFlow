@@ -10,9 +10,11 @@ public interface ProductService {
 
     ProductDto getById(Long id);
 
-    Page<ProductDto> search(String text, Pageable pageable);
+    Page<ProductDto> search(String text, String marca, Pageable pageable);
 
     ProductDto findByCode(String code);
 
     ProductDto findByBarcode(String barcode);
+    
+    void sincronizar(java.util.List<java.util.Map<String, Object>> productos);
 }

@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL para Desarrollo
+  # ============================================
+  db:
+    image: postgres:16-alpine
+    container_name: taskflow-postgres-dev
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${TF_DB_NAME:-taskflow_dev}
+      POSTGRES_USER: ${TF_DB_USER:-taskflow_dev}
+      POSTGRES_PASSWORD: ${TF_DB_PASSWORD:-dev_password_123}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    volumes:
+      - ./db/dev/data:/var/lib/postgresql/data
+      - ./backups/dev:/backups
+
+    ports:
+      - "${TF_DB_PORT:-5433}:5432"
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${TF_DB_USER:-taskflow_dev}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+    networks:
+      - taskflow-dev-network
+
+  # ============================================
+  # pgAdmin (solo desarrollo)
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: taskflow-pgadmin-dev
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@taskflow.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+
+    volumes:
+      - ./db/dev/pgadmin:/var/lib/pgadmin
+
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - taskflow-dev-network
+
+networks:
+  taskflow-dev-network:
+    driver: bridge

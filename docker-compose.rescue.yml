@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: taskflow-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskflow-network
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: taskflow-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - taskflow-network
+    restart: always
+
+
+  backend:
+    image: taskflow-app-backend:v5.19-fixed
+    container_name: taskflow-backend
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - taskflow-network
+    restart: always
+
+  frontend:
+    image: taskflow-app-frontend:v5.19-fixed
+    container_name: taskflow-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - taskflow-network
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
+
+
+
+networks:
+  taskflow-network:
+    driver: bridge

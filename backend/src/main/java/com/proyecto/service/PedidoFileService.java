@@ -44,7 +44,9 @@ public class PedidoFileService {
     }
 
     public void guardarPedido(PedidoDTO pedido) throws IOException {
-        String filename = pedido.getCliente().replaceAll("[^a-zA-Z0-9.-]", "_") + ".json";
+        String safeName = (pedido.getClienteNombre() != null ? pedido.getClienteNombre() : "guest")
+                .replaceAll("[^a-zA-Z0-9.-]", "_");
+        String filename = safeName + "_" + System.currentTimeMillis() + ".json";
         Path path = Paths.get(pendientesPath, filename);
         objectMapper.writeValue(path.toFile(), pedido);
     }
@@ -80,14 +82,17 @@ public class PedidoFileService {
     public Resource descargarTxt(String filename) throws IOException {
         PedidoDTO pedido = leerPedido(filename);
         StringBuilder sb = new StringBuilder();
-        sb.append("Cliente: ").append(pedido.getCliente()).append("\n");
-        sb.append("Fecha: ").append(pedido.getFecha()).append("\n");
+        sb.append("Cliente: ").append(pedido.getClienteNombre()).append("\n");
+        sb.append("Fecha: ").append(pedido.getFechaCreacion()).append("\n");
+        sb.append("Total: ").append(pedido.getTotal()).append("\n");
         sb.append("----------------------------------------\n");
 
-        for (var prod : pedido.getProductos()) {
-            sb.append(prod.getCodigo()).append(" - ")
-                    .append(prod.getDescripcion()).append(" x")
-                    .append(prod.getCantidad()).append("\n");
+        if (pedido.getItems() != null) {
+            for (var prod : pedido.getItems()) {
+                sb.append(prod.getCodigo()).append(" - ")
+                        .append(prod.getDescripcion()).append(" x")
+                        .append(prod.getCantidad()).append("\n");
+            }
         }
 
         return new org.springframework.core.io.ByteArrayResource(

@@ -1,93 +1,95 @@
-import { calculatePayments } from "../utils/paymentCalculator";
-import { Banknote, CreditCard, Landmark } from "lucide-react";
+import { 
+    CreditCard, Landmark, Banknote, Wallet, BadgeDollarSign 
+} from "lucide-react";
+import { usePaymentMethods } from "../hooks/usePaymentMethods";
+import { motion } from "framer-motion";
+
+const ICON_MAP: Record<string, React.ElementType> = {
+    'CASH': Banknote,
+    'CARD': CreditCard,
+    'TRANSFER': Landmark,
+    'WALLET': Wallet,
+    'CUSTOM': BadgeDollarSign,
+    // Compatibility names
+    Banknote,
+    CreditCard,
+    Landmark,
+    Wallet,
+    BadgeDollarSign,
+};
 
 interface PaymentSummaryProps {
     total: number;
 }
 
 export default function PaymentSummary({ total }: PaymentSummaryProps) {
-    const pay = calculatePayments(total);
-    const naranjaInstallments = total > 200000 ? 8 : 5;
+    const { methods, loading } = usePaymentMethods();
 
-    const methods: {
-        icon: any;
-        name: string;
-        discount: string | null;
-        amount: number;
-        color: string;
-        perMonth?: boolean;
-    }[] = [
-            { icon: Banknote, name: "Efectivo", discount: "-10%", amount: pay.efectivo, color: "green" },
-            { icon: Landmark, name: "Transferencia", discount: null, amount: pay.transfer, color: "blue" },
-            { icon: CreditCard, name: "Débito", discount: null, amount: pay.debit, color: "purple" },
-            { icon: CreditCard, name: "3 Cuotas s/interés", discount: null, amount: pay.cuotas3, color: "indigo", perMonth: true },
-            {
-                icon: CreditCard,
-                name: `Naranja ${naranjaInstallments} Cuotas`,
-                discount: null,
-                amount: pay.naranja5,
-                color: "orange",
-                perMonth: true
-            },
-        ];
-
-    // Add Banco Entre Ríos (always visible now per user request)
-    methods.push({
-        icon: CreditCard,
-        name: "Banco Entre Ríos 6 Cuotas",
-        discount: "Solo Vie/Sáb",
-        amount: pay.bancoEntreRios || total / 6, // Fallback calculation if null
-        color: "red",
-        perMonth: true
-    });
+    if (loading) return null;
 
     return (
         <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-6">Medios de Pago</h3>
 
-            {/* Responsive Grid: 1 col on mobile, 2 on medium+ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                {methods.map((method, idx) => {
-                    const Icon = method.icon;
-                    const colorClasses = {
-                        green: "from-green-500 to-emerald-600",
-                        blue: "from-blue-500 to-cyan-600",
-                        purple: "from-purple-500 to-pink-600",
-                        indigo: "from-indigo-500 to-violet-600",
-                        orange: "from-orange-500 to-amber-600",
-                        red: "from-red-500 to-rose-600",
-                        teal: "from-teal-500 to-cyan-600",
-                    }[method.color] || "from-gray-500 to-gray-600";
+                {methods.map((m) => {
+                    let finalAmt = total;
+
+                    if (m.adjustmentType === 'discount_percent') {
+                        finalAmt = total * (1 - (m.adjustmentValue || 0) / 100);
+                    } else if (m.adjustmentType === 'surcharge_percent') {
+                        finalAmt = total * (1 + (m.adjustmentValue || 0) / 100);
+                    } else if (m.adjustmentType === 'fixed_amount') {
+                        finalAmt = total + (m.adjustmentValue || 0);
+                    }
+
+                    const installmentAmt = (m.installmentsEnabled && m.installmentsQuantity) 
+                        ? finalAmt / m.installmentsQuantity 
+                        : null;
+
+                    const Icon = (m.iconKey && ICON_MAP[m.iconKey]) ? ICON_MAP[m.iconKey] : BadgeDollarSign;
+                    
+                    const fallbackGradients: Record<string, string> = {
+                        'CASH': 'linear-gradient(135deg, #10b981, #059669)',
+                        'CARD': 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                        'TRANSFER': 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                        'WALLET': 'linear-gradient(135deg, #fb923c, #f43f5e)',
+                    };
+
+                    const bgColor = m.background || fallbackGradients[m.type] || fallbackGradients['CASH'];
+                    const textColor = m.textColor || '#ffffff';
 
                     return (
-                        <div
-                            key={idx}
-                            className={`bg-gradient-to-br ${colorClasses} text-white rounded-xl p-3 sm:p-4 hover:shadow-xl transition-all duration-200`}
+                        <motion.div
+                            key={m.id}
+                            whileHover={{ scale: 1.02 }}
+                            className="rounded-xl p-4 shadow-md transition-all duration-200"
+                            style={{ background: bgColor, color: textColor }}
                         >
-                            <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-2 overflow-hidden">
-                                    <Icon size={20} className="shrink-0" />
-                                    <span className="font-semibold truncate text-sm sm:text-base">
-                                        {method.name.replace(' Cuotas', '')}
-                                        <span className="hidden sm:inline"> Cuotas</span>
-                                        <span className="inline sm:hidden"> C.</span>
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-black/20 rounded-lg flex items-center justify-center">
+                                        <Icon size={18} />
+                                    </div>
+                                    <span className="font-bold text-sm sm:text-base uppercase tracking-tight">
+                                        {m.name}
                                     </span>
                                 </div>
-                                {method.discount && (
-                                    <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold shrink-0">
-                                        {method.discount}
+                                {m.adjustmentValue !== 0 && (
+                                    <span className="bg-black/20 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest shrink-0">
+                                        {m.adjustmentType === 'discount_percent' ? `-${m.adjustmentValue}%` : `+${m.adjustmentValue}%`}
                                     </span>
                                 )}
                             </div>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-xl sm:text-2xl font-bold">
-                                    ${method.amount.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                <span className="text-xl sm:text-2xl font-black tabular-nums">
+                                    ${(installmentAmt || finalAmt).toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                                 </span>
-                                {method.perMonth && (
-                                    <span className="text-xs sm:text-sm font-normal opacity-90">/mes</span>
+                                {installmentAmt && (
+                                    <span className="text-xs font-bold opacity-60">/mes</span>
                                 )}
                             </div>
-                        </div>
+                        </motion.div>
                     );
                 })}
             </div>

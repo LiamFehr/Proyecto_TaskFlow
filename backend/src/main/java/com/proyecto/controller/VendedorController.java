@@ -18,15 +18,13 @@ public class VendedorController {
 
     @GetMapping("/productos")
     public ResponseEntity<List<Product>> buscarProductos(
-            @RequestParam(value = "search", required = false) String search) {
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "marca", required = false) String marca,
+            @RequestParam(value = "exact", required = false, defaultValue = "false") boolean exact) {
         if (search == null || search.isBlank()) {
             return ResponseEntity.ok(java.util.Collections.emptyList());
         }
-        // If numeric, keep old logic (code/barcode). If text, search description.
-        // Actually, backend ProductRepository has
-        // 'findByDescriptionContainingIgnoreCase'.
-        // Let's defer to service.
-        return ResponseEntity.ok(vendedorService.buscarProductos(search));
+        return ResponseEntity.ok(vendedorService.buscarProductos(search, marca, exact));
     }
 
     @GetMapping("/pedidos")

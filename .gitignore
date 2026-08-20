@@ -57,6 +57,7 @@ build/
 
 # Environment variables
 .env
+.env.dev
 .env.local
 .env.development.local
 .env.test.local
@@ -108,3 +109,28 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
+
+# ===========================
+# PYTHON / AGENTE
+# ===========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+agente/app/static/temp/
+agente/uploads/
+
+# ===========================
+# BACKEND LOGS / BUILD OUTPUT
+# ===========================
+backend/*_log*.txt
+backend/errors.txt
+backend/maven_errors.txt
+
+# ===========================
+# OPS / DEPLOY SCRATCH
+# ===========================
+.claude/
+hotfix.zip
+.env.prod

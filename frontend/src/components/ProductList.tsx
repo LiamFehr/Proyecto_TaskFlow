@@ -1,9 +1,6 @@
 import { Product } from "../types";
 import { Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import PaymentOptionsDisplay from "./PaymentOptionsDisplay";
-import { useAuthStore } from "../store/authStore";
-import { cn } from "../lib/utils";
 
 interface ProductListProps {
     products: Product[];
@@ -11,15 +8,9 @@ interface ProductListProps {
 }
 
 export default function ProductList({ products, onSelect }: ProductListProps) {
-    const { isAuthenticated } = useAuthStore();
-    const navigate = useNavigate();
 
     const handleAction = (product: Product, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!isAuthenticated) {
-            navigate("/login");
-            return;
-        }
         onSelect(product);
     };
 
@@ -41,10 +32,13 @@ export default function ProductList({ products, onSelect }: ProductListProps) {
                                     </span>
                                 </div>
 
-                                {/* Description */}
+                                {/* Name/Title */}
                                 <h3 className="text-2xl md:text-3xl font-bold text-slate-800 leading-tight mb-2 group-hover:text-blue-700 transition-colors">
-                                    {p.description}
+                                    {p.name || p.description}
                                 </h3>
+                                {p.description && p.name && (
+                                    <p className="text-sm text-slate-500 mb-2 truncate max-w-md">{p.description}</p>
+                                )}
                                 {p.barcode && (
                                     <p className="text-sm text-slate-400 font-mono truncate">{p.barcode}</p>
                                 )}
@@ -55,21 +49,16 @@ export default function ProductList({ products, onSelect }: ProductListProps) {
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Precio Lista</p>
                                     <p className="text-4xl md:text-5xl font-black text-emerald-600 tracking-tight">
-                                        ${p.price.toLocaleString('es-AR')}
+                                        ${(p.finalPrice || p.price).toLocaleString('es-AR')}
                                     </p>
                                 </div>
 
                                 <button
                                     onClick={(e) => handleAction(p, e)}
-                                    className={cn(
-                                        "w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-95 shadow-lg",
-                                        isAuthenticated
-                                            ? "bg-slate-900 text-white hover:bg-blue-600 hover:scale-105"
-                                            : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                                    )}
-                                    title={isAuthenticated ? "Agregar al carrito" : "Iniciar sesión para comprar"}
+                                    className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-95 shadow-lg bg-slate-900 text-white hover:bg-blue-600 hover:scale-105"
+                                    title="Agregar al carrito"
                                 >
-                                    <Plus strokeWidth={3} size={isAuthenticated ? 24 : 20} className="md:w-7 md:h-7" />
+                                    <Plus strokeWidth={3} size={24} className="md:w-7 md:h-7" />
                                 </button>
                             </div>
                         </div>
@@ -78,11 +67,11 @@ export default function ProductList({ products, onSelect }: ProductListProps) {
                         <div className="lg:w-[480px] shrink-0 bg-slate-50/30 rounded-xl md:rounded-2xl p-1 md:p-3 border border-slate-100/50 mt-2 lg:mt-0">
                             {/* Desktop: standard, Mobile: standard logic (not dense) but 2 columns */}
                             <div className="hidden md:block">
-                                <PaymentOptionsDisplay price={p.price} showTitle={false} columns={2} />
+                                <PaymentOptionsDisplay price={p.finalPrice || p.price} showTitle={false} columns={2} />
                             </div>
                             <div className="block md:hidden">
                                 {/* Using columns=2 and dense=false to make them larger but fit 2 per row side-by-edges */}
-                                <PaymentOptionsDisplay price={p.price} showTitle={false} columns={2} dense={false} mobileConfig={true} />
+                                <PaymentOptionsDisplay price={p.finalPrice || p.price} showTitle={false} columns={2} dense={false} mobileConfig={true} />
                             </div>
                         </div>
                     </div>

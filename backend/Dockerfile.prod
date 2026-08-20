@@ -1,0 +1,22 @@
+# Backend Production Dockerfile
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Run Stage
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+
+# Create directories for data
+RUN mkdir -p /app/data/pedidos /app/data/backups
+
+# Copy the JAR file
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose port
+EXPOSE 8000
+
+# Run with production profile
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]

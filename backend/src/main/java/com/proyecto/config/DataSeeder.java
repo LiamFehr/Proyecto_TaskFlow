@@ -18,6 +18,7 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         crearUsuarioSiNoExiste("admin@taskflow.com", "admin123", "Administrador", "ADMIN");
         crearUsuarioSiNoExiste("vendedor@taskflow.com", "vendedor123", "Vendedor", "VENDEDOR");
+        crearUsuarioSiNoExiste("agent@taskflow.internal", "agent_secure_2024!", "AI Agent", "ADMIN");
     }
 
     private void crearUsuarioSiNoExiste(String email, String password, String nombre, String rol) {

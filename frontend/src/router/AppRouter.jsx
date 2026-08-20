@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "./ProtectedRoute";
 import Login from "../auth/Login";
 import Registro from "../auth/Registro";
 import RecuperarCuenta from "../auth/RecuperarCuenta";
@@ -9,15 +9,11 @@ import CartPage from "../pages/CartPage";
 
 import ClienteLayout from "../layouts/ClienteLayout";
 import VendedorLayout from "../layouts/VendedorLayout";
-import AdminLayout from "../layouts/AdminLayout";
-
-import VendedorBuscador from "../vendor/VendedorBuscador";
-import SellerOrdersPage from "../pages/SellerOrdersPage";
-
-import ImportarCSV from "../admin/ImportarCSV";
 import Home from "../pages/Home";
 import SearchPage from "../pages/SearchPage";
 import PresupuestadorPage from "../pages/PresupuestadorPage";
+import VendedorPedidosPage from "../pages/VendedorPedidosPage";
+import SellerOrdersPage from "../pages/SellerOrdersPage";
 
 export default function AppRouter() {
     return (
@@ -31,15 +27,8 @@ export default function AppRouter() {
                 <Route path="/2fa" element={<Verificacion2FA />} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-                {/* protected cart */}
-                <Route
-                    path="/cart"
-                    element={
-                        <ProtectedRoute>
-                            <CartPage />
-                        </ProtectedRoute>
-                    }
-                />
+                {/* public cart (Self-Service) */}
+                <Route path="/cart" element={<CartPage />} />
 
                 {/* cliente */}
                 <Route
@@ -56,29 +45,19 @@ export default function AppRouter() {
                 <Route
                     path="/vendedor"
                     element={
-                        <ProtectedRoute roles={["VENDEDOR"]}>
+                        <ProtectedRoute roles={["VENDEDOR", "ADMIN"]}>
                             <VendedorLayout />
                         </ProtectedRoute>
                     }
                 >
-                    <Route index element={<SellerOrdersPage />} />
-                    <Route path="buscar" element={<VendedorBuscador />} />
+                    <Route index element={<VendedorPedidosPage />} />
+                    <Route path="ventas" element={<SellerOrdersPage />} />
                     <Route path="presupuestador" element={<PresupuestadorPage />} />
+                    <Route path="stock" element={<div>Panel de Stock (Próximamente)</div>} />
+                    <Route path="admin" element={<div>Panel de administración (Próximamente)</div>} />
                 </Route>
 
-                {/* admin */}
-                <Route
-                    path="/admin"
-                    element={
-                        <ProtectedRoute roles={["ADMIN"]}>
-                            <AdminLayout />
-                        </ProtectedRoute>
-                    }
-                >
-                    <Route index element={<ImportarCSV />} />
-                    <Route path="pedidos" element={<SellerOrdersPage />} />
-                    <Route path="buscar" element={<VendedorBuscador />} />
-                </Route>
+                <Route path="*" element={<div className="flex items-center justify-center min-h-screen text-2xl font-bold">404 - Página no encontrada</div>} />
             </Routes>
         </BrowserRouter>
     );

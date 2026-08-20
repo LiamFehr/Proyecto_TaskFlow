@@ -48,8 +48,11 @@ export default function CartList({ items, onRemove, onUpdateQuantity }: CartList
                             </div>
                             <div className="min-w-0">
                                 <h3 className="font-bold text-gray-800 text-sm sm:text-base leading-tight">
-                                    {item.description}
+                                    {item.name || item.description}
                                 </h3>
+                                {item.description && item.name && (
+                                    <p className="text-[10px] text-slate-500 line-clamp-1">{item.description}</p>
+                                )}
                                 <p className="text-xs text-slate-400 font-mono mt-1">{item.code}</p>
                             </div>
                         </div>
@@ -106,10 +109,10 @@ export default function CartList({ items, onRemove, onUpdateQuantity }: CartList
                                 </span>
                                 <div className="flex flex-col items-end sm:items-center">
                                     <span className="font-black text-emerald-600 text-base sm:text-lg">
-                                        ${(item.price * item.qty).toLocaleString('es-AR')}
+                                        ${((item.finalPrice || item.price || 0) * item.qty).toLocaleString('es-AR')}
                                     </span>
                                     <span className="text-[10px] text-slate-400 hidden sm:block">
-                                        Unit: ${item.price.toLocaleString('es-AR')}
+                                        Unit: ${(item.finalPrice || item.price || 0).toLocaleString('es-AR')}
                                     </span>
                                 </div>
                             </div>
